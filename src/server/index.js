@@ -313,6 +313,9 @@ app.get('/admin', (req, res) => {
   res.sendFile(join(dashboardPath, 'admin.html'));
 });
 
+// ── Health check (Railway uses this) ────────────────────────────────────────
+app.get('/health', (req, res) => res.json({ status: 'ok', uptime: process.uptime() }));
+
 // ── Catch-all → public viewer ─────────────────────────────────────────────────
 app.get('*', (req, res) => {
   res.sendFile(join(dashboardPath, 'index.html'));
@@ -320,12 +323,21 @@ app.get('*', (req, res) => {
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 export function startServer() {
-  const port = process.env.PORT || config.server?.port || 3000;
-  app.listen(port, () => {
-    logger.info(`🎰  Metadegens Arena  →  http://localhost:${port}`);
-    logger.info(`🔐  Admin panel       →  http://localhost:${port}/admin`);
-    // Auto-start the simulation immediately
-    setTimeout(autoStart, 1000);
+  const port = parseInt(process.env.PORT) || config.server?.port || 3000;
+
+  // Prevent unhandled rejections from crashing the server
+  process.on('unhandledRejection', (err) => {
+    logger.error('Unhandled rejection', { error: err?.message || err });
+  });
+  process.on('uncaughtException', (err) => {
+    logger.error('Uncaught exception', { error: err?.message || err });
+  });
+
+  // Bind to 0.0.0.0 so Railway can route external traffic
+  app.listen(port, '0.0.0.0', () => {
+    logger.info(`🎰  Metadegens Arena running on port ${port}`);
+    logger.info(`🔐  Admin panel at /admin`);
+    setTimeout(autoStart, 1500);
   });
 }
 
