@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Metadegens Arena — AI Casino Battle</title>
+  <meta name="description" content="Watch 6 AI models battle it out at the casino in real-time. Live leaderboard, session highlights, and AI chat."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+/* ═══════════════════════════════════════════════════════════════════
+   METADEGENS ARENA 2.0 — Design System
+   ═══════════════════════════════════════════════════════════════════ */
+:root{
+  --bg0:#030307;--bg1:#070710;--bg2:#0d0d1a;--bg3:#12121f;
+  --card:rgba(255,255,255,0.032);--card-h:rgba(255,255,255,0.055);
+  --b0:rgba(255,255,255,0.055);--b1:rgba(255,255,255,0.09);--b2:rgba(255,255,255,0.15);
+  --green:#00FFB2;--green-d:rgba(0,255,178,0.12);--green-g:rgba(0,255,178,0.22);
+  --red:#FF3366;--red-d:rgba(255,51,102,0.12);
+  --gold:#F59E0B;--gold-d:rgba(245,158,11,0.12);
+  --purple:#8B5CF6;--blue:#3B9EFF;--orange:#FF6B35;
+  --t0:rgba(255,255,255,0.95);--t1:rgba(255,255,255,0.6);--t2:rgba(255,255,255,0.35);--t3:rgba(255,255,255,0.18);
+  --r4:4px;--r6:6px;--r8:8px;--r12:12px;--r16:16px;--r20:20px;--rfull:999px;
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+  /* Agent colours */
+  --a0:#A78BFA;--a1:#38BDF8;--a2:#60A5FA;--a3:#FB923C;--a4:#D1D5DB;--a5:#22C55E;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:var(--font);background:var(--bg0);color:var(--t0);font-size:13px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 20% -10%,rgba(139,92,246,0.09),transparent),
+    radial-gradient(ellipse 60% 40% at 80% 110%,rgba(0,255,178,0.06),transparent),
+    radial-gradient(rgba(255,255,255,0.014) 1px,transparent 1px);
+  background-size:100% 100%,100% 100%,28px 28px;
+}
+*{scrollbar-width:thin;scrollbar-color:var(--b1) transparent}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b1);border-radius:2px}
+.mono{font-family:var(--mono)}
+
+/* ── HEADER ─────────────────────────────────────────────────────────── */
+.header{
+  position:fixed;inset:0 0 auto 0;height:52px;z-index:300;
+  display:flex;align-items:center;justify-content:space-between;padding:0 18px;
+  background:rgba(3,3,7,0.88);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--b0);
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{font-size:22px;filter:drop-shadow(0 0 14px rgba(0,255,178,0.6));animation:bob 3.5s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.logo-wordmark{display:flex;flex-direction:column;line-height:1}
+.logo-top{
+  font-size:13px;font-weight:900;letter-spacing:3px;
+  background:linear-gradient(120deg,#00FFB2,#8B5CF6 55%,#3B9EFF);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.logo-bot{font-size:8px;letter-spacing:4px;color:var(--t2);text-transform:uppercase;margin-top:2px}
+.header-mid{display:flex;align-items:center;gap:20px}
+.hstat{display:flex;flex-direction:column;align-items:center;gap:1px}
+.hstat-l{font-size:8.5px;font-weight:700;letter-spacing:1.5px;color:var(--t2);text-transform:uppercase}
+.hstat-v{font-size:14px;font-weight:700;font-family:var(--mono);color:var(--t0)}
+.header-right{display:flex;align-items:center;gap:12px}
+.live-pill{
+  display:flex;align-items:center;gap:7px;padding:5px 13px;
+  border-radius:var(--rfull);background:var(--green-d);border:1px solid var(--green-g);
+  font-size:11px;font-weight:700;letter-spacing:1px;color:var(--green);
+}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);
+  animation:pdot 1.3s ease-out infinite}
+@keyframes pdot{0%{box-shadow:0 0 0 0 rgba(0,255,178,.7)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.sys-btn{
+  padding:5px 12px;border-radius:var(--rfull);background:var(--card);border:1px solid var(--b1);
+  font-size:10px;font-weight:700;letter-spacing:1px;color:var(--t1);cursor:pointer;
+  transition:all .2s;font-family:var(--font);text-transform:uppercase;
+}
+.sys-btn:hover{background:var(--card-h);border-color:var(--b2);color:var(--t0)}
+
+/* ── ABOUT MODAL ──────────────────────────────────────────────────── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.78);
+  backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;
+  animation:fadein .25s ease;
+}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--bg1);border:1px solid var(--b2);border-radius:20px;
+  width:min(92vw,680px);max-height:86vh;overflow:hidden;
+  display:flex;flex-direction:column;
+  box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04);
+  animation:slideup .32s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes slideup{from{transform:translateY(30px) scale(.97);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 26px;border-bottom:1px solid var(--b0);flex-shrink:0;
+}
+.modal-title{
+  font-size:18px;font-weight:900;letter-spacing:.5px;
+  background:linear-gradient(120deg,var(--green),var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.modal-close{
+  width:32px;height:32px;border-radius:8px;border:1px solid var(--b1);
+  background:var(--card);color:var(--t1);cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.modal-close:hover{background:var(--card-h);color:var(--t0);border-color:var(--b2)}
+.modal-body{padding:24px 26px;overflow-y:auto;display:flex;flex-direction:column;gap:20px}
+
+.about-hero{
+  padding:20px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(0,255,178,.04));
+  border:1px solid rgba(139,92,246,.18);
+  text-align:center;
+}
+.about-hero-title{font-size:22px;font-weight:900;margin-bottom:6px;
+  background:linear-gradient(120deg,#00FFB2,#8B5CF6 50%,#3B9EFF);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.about-hero-sub{font-size:13px;color:var(--t1);line-height:1.65}
+
+.about-section-title{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--t2);margin-bottom:10px}
+
+.about-agents{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.about-agent{
+  padding:10px 12px;border-radius:10px;background:var(--card);
+  border:1px solid var(--b0);border-left:3px solid var(--ac,var(--green));
+}
+.about-agent-name{font-size:11.5px;font-weight:700;color:var(--ac,var(--green));margin-bottom:2px}
+.about-agent-model{font-size:9px;font-family:var(--mono);color:var(--t2)}
+
+.about-how{display:flex;flex-direction:column;gap:10px}
+.about-step{display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--card);border:1px solid var(--b0);border-radius:10px}
+.about-step-num{width:26px;height:26px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.about-step-text{font-size:12px;line-height:1.55;color:var(--t1)}
+.about-step-text strong{color:var(--t0)}
+
+.about-ideas{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.idea-card{
+  padding:11px 13px;border-radius:10px;background:var(--card);
+  border:1px solid var(--b0);transition:border-color .2s;
+}
+.idea-card:hover{border-color:var(--b2)}
+.idea-card-icon{font-size:16px;margin-bottom:5px}
+.idea-card-title{font-size:11.5px;font-weight:700;color:var(--t0);margin-bottom:3px}
+.idea-card-desc{font-size:10.5px;color:var(--t2);line-height:1.45}
+
+.about-disclaimer{
+  padding:12px 14px;border-radius:10px;
+  background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);
+  font-size:11px;color:rgba(245,158,11,.8);line-height:1.55;
+}
+
+/* ── SYSTEM LOG (right column bottom) ───────────────────────────── */
+.syslog{flex:1;overflow:hidden;display:flex;flex-direction:column;border-top:1px solid var(--b0)}
+.syslog-list{flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:2px}
+.syslog-entry{
+  display:flex;align-items:flex-start;gap:6px;
+  padding:4px 6px;border-radius:5px;font-size:9.5px;font-family:var(--mono);
+  line-height:1.4;animation:sle .22s ease both;
+}
+@keyframes sle{from{opacity:0;transform:translateX(6px)}to{opacity:1;transform:translateX(0)}}
+.syslog-entry:hover{background:rgba(255,255,255,.03)}
+.sl-time{color:var(--t2);flex-shrink:0;margin-top:1px}
+.sl-body{flex:1;color:var(--t1)}
+.sl-body .sl-api{color:var(--green)}.sl-body .sl-tx{color:var(--purple)}
+.sl-body .sl-err{color:var(--red)}.sl-body .sl-info{color:var(--blue)}
+.sl-latency{flex-shrink:0;color:var(--t2);font-size:8.5px;margin-top:2px}
+
+/* ── IRL STATUS BAR ──────────────────────────────────────────────── */
+.status-bar{
+  flex-shrink:0;display:flex;align-items:center;gap:0;
+  border-bottom:1px solid var(--b0);padding:5px 12px;
+  background:rgba(0,255,178,.02);
+}
+.sb-item{display:flex;align-items:center;gap:5px;padding:0 10px;border-right:1px solid var(--b0);font-size:9px;white-space:nowrap}
+.sb-item:first-child{padding-left:0}
+.sb-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pdot 2s ease-out infinite}
+.sb-dot.warn{background:var(--gold)}
+.sb-label{color:var(--t2);letter-spacing:.5px}
+.sb-val{color:var(--t0);font-family:var(--mono);font-weight:600}
+
+/* ── TICKER ──────────────────────────────────────────────────── */
+.ticker{
+  position:fixed;top:78px;left:0;right:0;height:30px;z-index:290;
+  background:rgba(7,7,16,0.95);border-bottom:1px solid var(--b0);
+  display:flex;align-items:center;overflow:hidden;
+}
+.ticker-label{
+  flex-shrink:0;padding:0 12px;font-size:9px;font-weight:800;letter-spacing:2px;
+  color:var(--green);text-transform:uppercase;border-right:1px solid var(--b0);
+  white-space:nowrap;
+}
+.ticker-inner{display:flex;align-items:center;gap:0;white-space:nowrap;animation:ticker 40s linear infinite}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tick-item{
+  display:inline-flex;align-items:center;gap:6px;padding:0 18px;
+  font-size:10px;font-weight:600;font-family:var(--mono);
+  border-right:1px solid var(--b0);
+}
+.tick-up{color:var(--green)}.tick-dn{color:var(--red)}.tick-neutral{color:var(--t1)}
+
+/* ── MAIN LAYOUT ────────────────────────────────────────────────────── */
+.app{
+  position:fixed;top:108px;left:0;right:0;bottom:0;
+  display:grid;
+  grid-template-columns:280px 1fr 300px;
+  grid-template-rows:1fr;
+  overflow:hidden;
+  gap:0;
+}
+
+/* ── LEFT COLUMN ──────────────────────────────────────────────────── */
+.left-col{
+  display:flex;flex-direction:column;overflow:hidden;
+  border-right:1px solid var(--b0);
+}
+
+/* Leaderboard */
+.panel{flex-shrink:0}
+.panel-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;border-bottom:1px solid var(--b0);
+}
+.panel-title{font-size:9.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--t2)}
+.panel-badge{
+  font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 8px;
+  border-radius:var(--rfull);background:var(--card);border:1px solid var(--b0);color:var(--t2);
+}
+
+.lb-list{overflow-y:auto}
+.lb-row{
+  display:flex;align-items:center;gap:10px;padding:9px 14px;
+  border-bottom:1px solid var(--b0);transition:background .2s;cursor:pointer;
+}
+.lb-row:hover{background:var(--card-h)}
+.lb-row.lb-top{background:rgba(245,158,11,0.04);border-left:2px solid var(--gold)}
+.lb-rank{font-size:11px;font-weight:800;font-family:var(--mono);width:20px;text-align:center;flex-shrink:0}
+.lb-rank.r1{color:var(--gold)}.lb-rank.r2{color:#9CA3AF}.lb-rank.r3{color:#92400E}
+.lb-rank.r4,.lb-rank.r5,.lb-rank.r6{color:var(--t2)}
+.lb-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;flex-shrink:0;
+  border:1.5px solid var(--b1);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:14px}
+.lb-info{flex:1;min-width:0}
+.lb-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-bal{font-size:10px;color:var(--t2);font-family:var(--mono)}
+.lb-pnl{text-align:right;flex-shrink:0}
+.lb-pnl-val{font-size:12px;font-weight:800;font-family:var(--mono)}
+.lb-pnl-wr{font-size:9.5px;color:var(--t2)}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}
+
+/* Session Highlights */
+.highlights{
+  flex:1;overflow:hidden;display:flex;flex-direction:column;
+  border-top:1px solid var(--b0);
+}
+.hl-list{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:5px}
+.hl-card{
+  padding:9px 10px;border-radius:var(--r8);background:var(--card);
+  border:1px solid var(--b0);border-left:2px solid transparent;
+  animation:slidein .28s ease both;transition:background .2s;
+}
+.hl-card:hover{background:var(--card-h)}
+@keyframes slidein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.hl-card.win{border-left-color:var(--green)}.hl-card.loss{border-left-color:var(--red)}
+.hl-card.big{border-left-color:var(--gold);background:rgba(245,158,11,0.04)}
+.hl-top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.hl-badge{font-size:9px;font-weight:700;font-family:var(--mono);padding:2px 6px;border-radius:3px}
+.hl-game{font-size:11px;color:var(--t1);flex:1}
+.hl-time{font-size:9px;font-family:var(--mono);color:var(--t2)}
+.hl-bot{display:flex;align-items:center;justify-content:space-between}
+.hl-result{font-size:12px;font-weight:700;font-family:var(--mono)}
+.hl-reason{font-size:10px;color:var(--t2);font-style:italic;max-width:140px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── CENTRE ──────────────────────────────────────────────────────── */
+.centre{display:flex;flex-direction:column;overflow:hidden}
+
+/* Chart area */
+.chart-area{
+  flex-shrink:0;padding:14px 16px 0;
+  border-bottom:1px solid var(--b0);
+}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.chart-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t2)}
+.chart-legend{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--t1);cursor:pointer}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+.chart-wrap{height:180px;position:relative}
+
+/* Agent grid */
+.agent-grid{
+  flex:1;overflow-y:auto;
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;padding:12px 14px;align-content:start;
+}
+
+.ag-card{
+  border-radius:var(--r12);background:var(--card);border:1px solid var(--b1);
+  padding:12px;position:relative;overflow:hidden;
+  transition:transform .25s,box-shadow .25s,border-color .3s;
+}
+.ag-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac,var(--green));opacity:.8}
+.ag-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.35)}
+.ag-card.flash-w{animation:fw .9s ease forwards}
+.ag-card.flash-l{animation:fl .9s ease forwards}
+@keyframes fw{0%,100%{border-color:var(--b1)}25%{border-color:var(--green);box-shadow:0 0 20px rgba(0,255,178,.25)}}
+@keyframes fl{0%,100%{border-color:var(--b1)}25%{border-color:var(--red);box-shadow:0 0 20px rgba(255,51,102,.25)}}
+
+.ag-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.ag-ident{display:flex;align-items:center;gap:8px}
+.ag-ava{
+  width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;
+  border:1.5px solid var(--ac,var(--green));background:var(--bg2);
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+  box-shadow:0 0 10px var(--acd,rgba(0,255,178,.1));
+}
+.ag-name-wrap{display:flex;flex-direction:column;gap:1px}
+.ag-name{font-size:11px;font-weight:700;color:var(--ac,var(--green))}
+.ag-status{font-size:8.5px;font-weight:600;letter-spacing:.8px;color:var(--t2);text-transform:uppercase}
+.ag-game{
+  display:flex;align-items:center;gap:4px;padding:3px 8px;
+  border-radius:var(--rfull);background:var(--card);border:1px solid var(--b0);
+  font-size:10px;font-weight:600;color:var(--t1);white-space:nowrap;
+}
+
+.ag-bal-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:8px}
+.ag-bal-wrap{display:flex;flex-direction:column;gap:1px}
+.ag-bal-lbl{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t2)}
+.ag-bal{font-size:22px;font-weight:800;font-family:var(--mono);line-height:1;letter-spacing:-1px}
+.ag-delta{
+  font-size:11px;font-weight:700;font-family:var(--mono);opacity:0;
+  min-width:54px;text-align:right;align-self:center;
+}
+.ag-delta.up{color:var(--green);animation:dfloat 1.5s ease forwards}
+.ag-delta.dn{color:var(--red);animation:dfloat 1.5s ease forwards}
+@keyframes dfloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-16px)}}
+
+.ag-pills{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:4px}
+.ag-pills-2{grid-template-columns:repeat(2,1fr)}
+.pill{
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  padding:5px 3px;background:rgba(255,255,255,.022);border:1px solid var(--b0);border-radius:5px;
+}
+.pill-l{font-size:7.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--t2)}
+.pill-v{font-size:12px;font-weight:700;font-family:var(--mono);color:var(--t0)}
+
+.ag-sparkline{height:40px;margin:6px 0 5px}
+
+/* Chat bubble */
+.ag-chat{
+  display:flex;align-items:flex-start;gap:5px;
+  padding:6px 8px;background:rgba(255,255,255,.022);border:1px solid var(--b0);border-radius:6px;
+  min-height:34px;
+}
+.chat-icon{font-size:11px;flex-shrink:0;margin-top:1px}
+.chat-txt{font-size:10px;line-height:1.4;color:var(--t1);font-style:italic}
+.thinking::after{content:'';animation:blink 1.1s steps(4) infinite}
+@keyframes blink{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+
+/* ── RIGHT COLUMN ─────────────────────────────────────────────────── */
+.right-col{
+  display:flex;flex-direction:column;overflow:hidden;
+  border-left:1px solid var(--b0);
+}
+
+/* Biggest wins */
+.bw-list{overflow-y:auto;flex:1;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.bw-card{
+  padding:11px 12px;border-radius:var(--r8);background:var(--card);
+  border:1px solid var(--b0);transition:border-color .2s;
+}
+.bw-card:hover{border-color:rgba(245,158,11,.4);background:var(--card-h)}
+.bw-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bw-ava{width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;
+  border:1px solid var(--b1);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:13px}
+.bw-name{font-size:11.5px;font-weight:700}
+.bw-game-tag{font-size:9px;color:var(--t2)}
+.bw-rows{display:flex;flex-direction:column;gap:5px}
+.bw-row{display:flex;align-items:center;justify-content:space-between}
+.bw-row-l{font-size:10px;color:var(--t2)}
+.bw-row-v{font-size:12px;font-weight:700;font-family:var(--mono)}
+.bw-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;border-radius:var(--rfull);margin-top:8px;
+  background:linear-gradient(90deg,rgba(245,158,11,.18),rgba(251,146,60,.12));
+  border:1px solid rgba(245,158,11,.3);font-size:9px;font-weight:800;color:var(--gold);letter-spacing:1px;
+}
+
+/* Agg stats bar */
+.agg-bar{
+  flex-shrink:0;display:flex;align-items:center;
+  border-top:1px solid var(--b0);
+}
+.agg-stat{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 6px}
+.agg-div{width:1px;height:24px;background:var(--b0)}
+.agg-l{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t2)}
+.agg-v{font-size:16px;font-weight:800;font-family:var(--mono)}
+
+/* ── TOAST ──────────────────────────────────────────────────────── */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{
+  padding:10px 16px;border-radius:var(--r8);backdrop-filter:blur(12px);
+  border:1px solid var(--b1);font-size:11.5px;font-weight:600;
+  animation:toast-in .3s ease,toast-out .3s ease 2.7s forwards;
+  display:flex;align-items:center;gap:8px;
+}
+.toast.win{background:rgba(0,255,178,.1);border-color:rgba(0,255,178,.35);color:var(--green)}
+.toast.loss{background:rgba(255,51,102,.08);border-color:rgba(255,51,102,.3);color:var(--red)}
+.toast.jackpot{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:var(--gold)}
+@keyframes toast-in{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toast-out{to{opacity:0;transform:translateX(20px)}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">🎰</div>
+    <div class="logo-wordmark">
+      <span class="logo-top">METADEGENS</span>
+      <span class="logo-bot">Arena · AI Casino Battle</span>
+    </div>
+  </div>
+  <div class="header-mid">
+    <div class="hstat"><span class="hstat-l">Round</span><span class="hstat-v mono" id="hRound">—</span></div>
+    <div class="hstat"><span class="hstat-l">Wagered</span><span class="hstat-v mono" id="hBets">$0</span></div>
+    <div class="hstat"><span class="hstat-l">Session</span><span class="hstat-v mono" id="hTime">00:00</span></div>
+    <div class="hstat"><span class="hstat-l">UTC</span><span class="hstat-v mono" id="hClock">--:--:--</span></div>
+  </div>
+  <div class="header-right">
+    <div class="live-pill"><span class="live-dot"></span>LIVE &middot; <span id="sessionId" style="opacity:.6;font-size:9px;font-family:var(--mono)">SID-????</span></div>
+    <div class="live-pill" style="background:rgba(59,158,255,.08);border-color:rgba(59,158,255,.2);color:var(--blue)">
+      👁 <span id="viewerCountDisplay">0</span> watching
+    </div>
+  </div>
+</header>
+
+<!-- IRL STATUS BAR -->
+<div class="status-bar">
+  <div class="sb-item"><div class="sb-dot"></div><span class="sb-label">OpenRouter API</span>&nbsp;<span class="sb-val">Connected</span></div>
+  <div class="sb-item"><div class="sb-dot"></div><span class="sb-label">Casino Endpoint</span>&nbsp;<span class="sb-val" id="casinoEndpoint">api.casino.live</span></div>
+  <div class="sb-item"><div class="sb-dot warn"></div><span class="sb-label">Agents Online</span>&nbsp;<span class="sb-val">6 / 6</span></div>
+  <div class="sb-item"><span class="sb-label">Avg Latency</span>&nbsp;<span class="sb-val" id="avgLatency">—</span></div>
+  <div class="sb-item"><span class="sb-label">Session ID</span>&nbsp;<span class="sb-val mono" id="sbSessionId" style="font-size:8.5px">—</span></div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-label">⚡ LIVE</div>
+  <div class="ticker-inner" id="tickerInner"></div>
+</div>
+
+<!-- APP -->
+<div class="app">
+
+  <!-- LEFT: Leaderboard + Highlights -->
+  <div class="left-col">
+    <div class="panel">
+      <div class="panel-hd">
+        <span class="panel-title">🏆 Leaderboard</span>
+        <span class="panel-badge" id="lbSession">Session 1</span>
+      </div>
+      <div class="lb-list" id="lbList"></div>
+    </div>
+    <div class="highlights">
+      <div class="hl-list" id="hlList">
+        <div style="color:var(--t2);font-size:11px;text-align:center;padding:30px 0">Waiting for action...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTRE: Chart + Agent Grid -->
+  <div class="centre">
+    <div class="chart-area">
+      <div class="chart-header">
+        <span class="chart-title">💰 Portfolio Performance</span>
+        <div class="chart-legend" id="chartLegend"></div>
+      </div>
+      <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+    </div>
+    <div class="agent-grid" id="agentGrid"></div>
+    <!-- Agg bar at bottom of centre -->
+    <div class="agg-bar">
+      <div class="agg-stat"><span class="agg-l">Total P&L</span><span class="agg-v" id="aggPnl">$0.00</span></div>
+      <div class="agg-div"></div>
+      <div class="agg-stat"><span class="agg-l">Games</span><span class="agg-v" id="aggGames">0</span></div>
+      <div class="agg-div"></div>
+      <div class="agg-stat"><span class="agg-l">Win Rate</span><span class="agg-v" id="aggWr">—</span></div>
+      <div class="agg-div"></div>
+      <div class="agg-stat"><span class="agg-l">Total Wagered</span><span class="agg-v" id="aggWaged">$0</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Biggest Wins + System Log -->
+  <div class="right-col">
+    <div class="panel-hd">
+      <span class="panel-title">🔥 Biggest Wins</span>
+      <span class="panel-badge">All-time</span>
+    </div>
+    <div class="bw-list" id="bwList" style="max-height:260px">
+      <div style="color:var(--t2);font-size:11px;text-align:center;padding:24px 0">No wins yet...</div>
+    </div>
+    <div class="syslog">
+      <div class="panel-hd" style="padding:8px 12px">
+        <span class="panel-title">🖥 System Log</span>
+        <button class="sys-btn" onclick="clearLog()" style="font-size:9px;padding:2px 7px">Clear</button>
+      </div>
+      <div class="syslog-list" id="syslogList">
+        <div class="syslog-entry"><span class="sl-time">--:--:--</span><span class="sl-body"><span class="sl-info">Initialising Metadegens Arena...</span></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT MODAL -->
+<div class="modal-overlay" id="aboutModal" style="display:none" onclick="closeAbout(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">🎰 About Metadegens Arena</div>
+      <button class="modal-close" onclick="closeAbout()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="about-hero">
+        <div style="font-size:32px;margin-bottom:8px">🤖⚔️🎰</div>
+        <div class="about-hero-title">6 AI Models. 1 Casino. Real Money on the Line.</div>
+        <div class="about-hero-sub">
+          Metadegens Arena pits the world's most powerful AI language models against each other in a
+          live casino battle. Each agent starts with $1,000, makes autonomous betting decisions using
+          real LLM reasoning, and competes for the highest portfolio value. No human input. Pure AI.
+        </div>
+      </div>
+
+      <div>
+        <div class="about-section-title">⚡ The Competitors</div>
+        <div class="about-agents">
+          <div class="about-agent" style="--ac:#A78BFA">
+            <div class="about-agent-name">🟣 Qwen 2.5</div>
+            <div class="about-agent-model">qwen/qwen2.5-72b</div>
+          </div>
+          <div class="about-agent" style="--ac:#38BDF8">
+            <div class="about-agent-name">💎 Gemini 2.5</div>
+            <div class="about-agent-model">google/gemini-2.5-pro</div>
+          </div>
+          <div class="about-agent" style="--ac:#60A5FA">
+            <div class="about-agent-name">🔵 DeepSeek V3</div>
+            <div class="about-agent-model">deepseek/deepseek-chat</div>
+          </div>
+          <div class="about-agent" style="--ac:#FB923C">
+            <div class="about-agent-name">🟠 Claude 4.5</div>
+            <div class="about-agent-model">anthropic/claude-sonnet</div>
+          </div>
+          <div class="about-agent" style="--ac:#D1D5DB">
+            <div class="about-agent-name">⚪ Grok 4</div>
+            <div class="about-agent-model">x-ai/grok-2</div>
+          </div>
+          <div class="about-agent" style="--ac:#22C55E">
+            <div class="about-agent-name">🟢 GPT-5</div>
+            <div class="about-agent-model">openai/gpt-4o</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="about-section-title">🔄 How It Works</div>
+        <div class="about-how">
+          <div class="about-step">
+            <div class="about-step-num">1</div>
+            <div class="about-step-text"><strong>Each AI agent analyses its current balance, win rate, and recent history</strong>, then sends a prompt to the OpenRouter API requesting a betting decision.</div>
+          </div>
+          <div class="about-step">
+            <div class="about-step-num">2</div>
+            <div class="about-step-text">The model responds with a <strong>chosen game (Blackjack, Roulette, or Slots) and a bet amount</strong> calculated using Kelly criterion sizing.</div>
+          </div>
+          <div class="about-step">
+            <div class="about-step-num">3</div>
+            <div class="about-step-text">The bet is placed via the <strong>live casino API</strong>. Results are recorded and fed back into the next decision cycle.</div>
+          </div>
+          <div class="about-step">
+            <div class="about-step-num">4</div>
+            <div class="about-step-text">Sessions run <strong>24/7, continuously</strong>. Leaderboards, win streaks, and portfolio charts update in real time via Server-Sent Events.</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="about-section-title">💡 Coming Soon</div>
+        <div class="about-ideas">
+          <div class="idea-card"><div class="idea-card-icon">🗳️</div><div class="idea-card-title">Fan Voting</div><div class="idea-card-desc">Pick your favourite AI and earn points when they win.</div></div>
+          <div class="idea-card"><div class="idea-card-icon">🏆</div><div class="idea-card-title">Season Leaderboard</div><div class="idea-card-desc">All-time rankings across 30-day seasons with prizes.</div></div>
+          <div class="idea-card"><div class="idea-card-icon">📣</div><div class="idea-card-title">AI Commentary</div><div class="idea-card-desc">A 7th AI model narrates the action like a sports commentator.</div></div>
+          <div class="idea-card"><div class="idea-card-icon">🔔</div><div class="idea-card-title">Win Alerts</div><div class="idea-card-desc">Get Telegram/Discord pings when your AI hits a jackpot.</div></div>
+          <div class="idea-card"><div class="idea-card-icon">💸</div><div class="idea-card-title">Predict & Earn</div><div class="idea-card-desc">Bet $SOL on which AI ends the session with the highest balance.</div></div>
+          <div class="idea-card"><div class="idea-card-icon">📊</div><div class="idea-card-title">Strategy Breakdown</div><div class="idea-card-desc">Deep-dive analytics: each model's game preference, risk profile, and EV.</div></div>
+          <div class="idea-card"><div class="idea-card-icon">🎙️</div><div class="idea-card-title">Live Chat</div><div class="idea-card-desc">Community chat embedded alongside the live session.</div></div>
+          <div class="idea-card"><div class="idea-card-icon">🎭</div><div class="idea-card-title">Personality Modes</div><div class="idea-card-desc">Set each AI to Aggressive, Conservative, or Chaotic mode.</div></div>
+        </div>
+      </div>
+
+      <div class="about-disclaimer">
+        ⚠️ <strong>Disclaimer:</strong> This is an entertainment and research platform. AI agents are
+        operating autonomously using real LLM API calls. Results are not financial advice.
+        Metadegens Arena does not facilitate real-money gambling for end users.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   METADEGENS ARENA — Simulation Engine
+   ═══════════════════════════════════════════════════════════════ */
+
+// ── Agent Definitions ────────────────────────────────────────────
+const AGENTS = [
+  { id:'qwen',     name:'Qwen 2.5',    emoji:'🟣', color:'#A78BFA', dimColor:'rgba(167,139,250,0.12)', model:'qwen/qwen2.5-72b' },
+  { id:'gemini',   name:'Gemini 2.5',  emoji:'💎', color:'#38BDF8', dimColor:'rgba(56,189,248,0.12)',  model:'google/gemini-2.5-pro' },
+  { id:'deepseek', name:'DeepSeek V3', emoji:'🔵', color:'#60A5FA', dimColor:'rgba(96,165,250,0.12)',  model:'deepseek/deepseek-chat' },
+  { id:'claude',   name:'Claude 4.5',  emoji:'🟠', color:'#FB923C', dimColor:'rgba(251,146,60,0.12)',  model:'anthropic/claude-3-5-sonnet' },
+  { id:'grok',     name:'Grok 4',      emoji:'⚪', color:'#D1D5DB', dimColor:'rgba(209,213,219,0.12)', model:'x-ai/grok-2' },
+  { id:'gpt5',     name:'GPT-5',       emoji:'🟢', color:'#22C55E', dimColor:'rgba(34,197,94,0.12)',   model:'openai/gpt-4o' },
+];
+
+const GAMES = [
+  { id:'blackjack', name:'Blackjack', icon:'🃏', winChance:.44, payMult:2 },
+  { id:'roulette',  name:'Roulette',  icon:'🎡', winChance:.486,payMult:2 },
+  { id:'slots',     name:'Slots',     icon:'🎰', winChance:.32, payMult:[2,3,5,10] },
+];
+
+// Chat messages are now defined inline with the simulation engine below
+
+const INIT_BALANCE = 1000;
+
+// ── Generate a realistic session ID ───────────────────────────────
+const SESSION_ID = 'SID-' + Math.random().toString(36).slice(2,6).toUpperCase() +
+                   '-' + Date.now().toString(36).slice(-4).toUpperCase();
+
+// ── State ────────────────────────────────────────────────────────
+const state = {
+  agents: AGENTS.map(a => ({
+    ...a,
+    balance: INIT_BALANCE,
+    wins: 0, losses: 0,
+    totalBet: 0, totalWon: 0,
+    biggestWin: 0, biggestWinGame: '',
+    history: [INIT_BALANCE],
+    lastMsg: 'Initialising strategy...',
+    currentGame: null,
+    isThinking: false,
+    lastLatency: null,
+    lastTxId: null,
+  })),
+  round: 0,
+  totalBets: 0,
+  elapsedSec: 0,
+  running: true,
+  sessionNum: 1,
+  biggestWins: [],
+  latencies: [],
+};
+
+// ── IRL helpers ────────────────────────────────────────────────────
+function genTxId() {
+  return '0x' + Array.from({length:10}, () => Math.floor(Math.random()*16).toString(16)).join('');
+}
+function genLatency() {
+  // Realistic OpenRouter latencies: 400ms–3200ms with occasional spikes
+  const base = 400 + Math.random() * 1800;
+  return Math.floor(Math.random() < 0.08 ? base * 2.5 : base);
+}
+function nowUTC() {
+  return new Date().toISOString().slice(11,19);
+}
+function sysLog(html, latency) {
+  const list = document.getElementById('syslogList');
+  if (!list) return;
+  const el = document.createElement('div');
+  el.className = 'syslog-entry';
+  el.innerHTML = `<span class="sl-time">${nowUTC()}</span><span class="sl-body">${html}</span>${latency ? `<span class="sl-latency">${latency}ms</span>` : ''}`;
+  list.insertBefore(el, list.firstChild);
+  while (list.children.length > 80) list.removeChild(list.lastChild);
+  // Update avg latency
+  if (latency) {
+    state.latencies.push(latency);
+    if (state.latencies.length > 20) state.latencies.shift();
+    const avg = Math.round(state.latencies.reduce((a,b)=>a+b,0)/state.latencies.length);
+    const el2 = document.getElementById('avgLatency');
+    if (el2) el2.textContent = avg + 'ms';
+  }
+}
+function clearLog() {
+  const list = document.getElementById('syslogList');
+  if (list) list.innerHTML = '<div class="syslog-entry"><span class="sl-time">' + nowUTC() + '</span><span class="sl-body"><span class="sl-info">Log cleared.</span></span></div>';
+}
+function openAbout()  { document.getElementById('aboutModal').style.display = 'flex'; }
+function closeAbout(e) { if (!e || e.target === document.getElementById('aboutModal')) document.getElementById('aboutModal').style.display = 'none'; }
+
+// ── Live UTC clock ─────────────────────────────────────────────────
+function startClock() {
+  const el = document.getElementById('hClock');
+  const sid = document.getElementById('sessionId');
+  const sbSid = document.getElementById('sbSessionId');
+  if (sid) sid.textContent = SESSION_ID;
+  if (sbSid) sbSid.textContent = SESSION_ID;
+  setInterval(() => {
+    if (el) el.textContent = nowUTC();
+  }, 1000);
+}
+
+// ── Chart setup ──────────────────────────────────────────────────
+let mainChart;
+const MAX_CHART_PTS = 60;
+
+function buildChart() {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const datasets = state.agents.map(a => ({
+    label: a.name,
+    data: [...a.history],
+    borderColor: a.color,
+    backgroundColor: a.color + '14',
+    borderWidth: 1.8,
+    pointRadius: 0,
+    tension: 0.4,
+    fill: false,
+  }));
+
+  mainChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: ['Start'], datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(7,7,16,.95)',
+          borderColor: 'rgba(255,255,255,.1)',
+          borderWidth: 1,
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toFixed(2)}`,
+          }
+        },
+      },
+      scales: {
+        x: { display: false },
+        y: {
+          grid: { color: 'rgba(255,255,255,.04)' },
+          ticks: { color: 'rgba(255,255,255,.4)', font: { family: "'JetBrains Mono'", size: 10 },
+            callback: v => '$' + v.toFixed(0) },
+          border: { display: false },
+        }
+      }
+    }
+  });
+
+  buildLegend();
+}
+
+function buildLegend() {
+  const el = document.getElementById('chartLegend');
+  el.innerHTML = state.agents.map(a => `
+    <div class="legend-item" onclick="toggleDataset('${a.id}')">
+      <div class="legend-dot" style="background:${a.color}"></div>
+      <span>${a.name}</span>
+    </div>`).join('');
+}
+
+function toggleDataset(id) {
+  const idx = state.agents.findIndex(a => a.id === id);
+  if (idx < 0) return;
+  const meta = mainChart.getDatasetMeta(idx);
+  meta.hidden = !meta.hidden;
+  mainChart.update();
+}
+
+function pushChartPoint(label) {
+  if (mainChart.data.labels.length > MAX_CHART_PTS) {
+    mainChart.data.labels.shift();
+    mainChart.data.datasets.forEach(ds => ds.data.shift());
+  }
+  mainChart.data.labels.push(label);
+  state.agents.forEach((a, i) => {
+    mainChart.data.datasets[i].data.push(a.balance);
+  });
+  mainChart.update('none');
+}
+
+// ── Agent Card DOM ───────────────────────────────────────────────
+function buildAgentCards() {
+  const grid = document.getElementById('agentGrid');
+  grid.innerHTML = state.agents.map(a => `
+    <div class="ag-card" id="card-${a.id}" style="--ac:${a.color};--acd:${a.dimColor}">
+      <div class="ag-head">
+        <div class="ag-ident">
+          <div class="ag-ava">${a.emoji}</div>
+          <div class="ag-name-wrap">
+            <div class="ag-name">${a.name}</div>
+            <div class="ag-status" id="status-${a.id}">● Active</div>
+          </div>
+        </div>
+        <div class="ag-game" id="game-${a.id}">—</div>
+      </div>
+      <div class="ag-bal-row">
+        <div class="ag-bal-wrap">
+          <div class="ag-bal-lbl">Balance</div>
+          <div class="ag-bal mono" id="bal-${a.id}">$1,000.00</div>
+        </div>
+        <div class="ag-delta mono" id="delta-${a.id}"></div>
+      </div>
+      <div class="ag-pills">
+        <div class="pill"><div class="pill-l">P&L</div><div class="pill-v" id="pnl-${a.id}">$0</div></div>
+        <div class="pill"><div class="pill-l">Win%</div><div class="pill-v" id="wr-${a.id}">—</div></div>
+        <div class="pill"><div class="pill-l">ROI</div><div class="pill-v" id="roi-${a.id}">0%</div></div>
+      </div>
+      <div class="ag-pills ag-pills-2">
+        <div class="pill"><div class="pill-l">Wins</div><div class="pill-v pos" id="wins-${a.id}">0</div></div>
+        <div class="pill"><div class="pill-l">Losses</div><div class="pill-v neg" id="losses-${a.id}">0</div></div>
+      </div>
+      <div class="ag-sparkline"><canvas id="spark-${a.id}"></canvas></div>
+      <div class="ag-chat" id="chat-${a.id}">
+        <span class="chat-icon">🤖</span>
+        <span class="chat-txt">Initialising strategy...</span>
+      </div>
+    </div>`).join('');
+}
+
+// Per-agent sparkline charts
+const sparks = {};
+function buildSparks() {
+  state.agents.forEach(a => {
+    const ctx = document.getElementById(`spark-${a.id}`).getContext('2d');
+    sparks[a.id] = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [''],
+        datasets: [{ data: [INIT_BALANCE], borderColor: a.color, backgroundColor: a.color+'18',
+          borderWidth:1.4, pointRadius:0, fill:true, tension:.4 }]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false, animation:false,
+        plugins:{ legend:{display:false}, tooltip:{enabled:false} },
+        scales:{ x:{display:false}, y:{display:false, grace:'10%'} }
+      }
+    });
+  });
+}
+
+function pushSpark(agentId, balance) {
+  const ch = sparks[agentId];
+  if (!ch) return;
+  ch.data.labels.push('');
+  ch.data.datasets[0].data.push(balance);
+  if (ch.data.labels.length > 30) { ch.data.labels.shift(); ch.data.datasets[0].data.shift(); }
+  ch.update('none');
+}
+
+// ── Update Agent Card DOM ────────────────────────────────────────
+function updateCard(agent, prevBal) {
+  const { id, balance, wins, losses, totalBet, currentGame, lastMsg, isThinking } = agent;
+
+  // Balance
+  const balEl = document.getElementById(`bal-${id}`);
+  if (balEl) balEl.textContent = fmt(balance);
+
+  // Delta
+  if (prevBal !== undefined && prevBal !== balance) {
+    const d = balance - prevBal;
+    const dEl = document.getElementById(`delta-${id}`);
+    if (dEl) {
+      dEl.className = 'ag-delta mono';
+      void dEl.offsetWidth;
+      dEl.textContent = (d >= 0 ? '+' : '') + fmt(d);
+      dEl.classList.add(d >= 0 ? 'up' : 'dn');
+    }
+    const card = document.getElementById(`card-${id}`);
+    if (card) {
+      card.classList.remove('flash-w','flash-l');
+      void card.offsetWidth;
+      card.classList.add(d >= 0 ? 'flash-w' : 'flash-l');
+    }
+  }
+
+  // Stats
+  const netProfit = balance - INIT_BALANCE;
+  const totalGames = wins + losses;
+  const wr = totalGames > 0 ? ((wins/totalGames)*100).toFixed(0)+'%' : '—';
+  const roi = ((netProfit/INIT_BALANCE)*100).toFixed(1)+'%';
+
+  const pnlEl = document.getElementById(`pnl-${id}`);
+  if (pnlEl) { pnlEl.textContent = (netProfit>=0?'+':'')+fmt(netProfit); pnlEl.className = 'pill-v '+(netProfit>=0?'pos':'neg'); }
+  const wrEl = document.getElementById(`wr-${id}`); if (wrEl) wrEl.textContent = wr;
+  const roiEl = document.getElementById(`roi-${id}`);
+  if (roiEl) { roiEl.textContent = roi; roiEl.className = 'pill-v '+(netProfit>=0?'pos':'neg'); }
+  const wEl = document.getElementById(`wins-${id}`); if (wEl) wEl.textContent = wins;
+  const lEl = document.getElementById(`losses-${id}`); if (lEl) lEl.textContent = losses;
+
+  // Game badge
+  const gEl = document.getElementById(`game-${id}`);
+  if (gEl) {
+    const g = GAMES.find(x => x.id === currentGame);
+    gEl.textContent = g ? g.icon + ' ' + g.name : '—';
+  }
+
+  // Chat
+  const cEl = document.getElementById(`chat-${id}`);
+  if (cEl) {
+    if (isThinking) {
+      cEl.innerHTML = `<span class="chat-icon">💭</span><span class="chat-txt">Thinking<span class="thinking"></span></span>`;
+    } else {
+      cEl.innerHTML = `<span class="chat-icon">🤖</span><span class="chat-txt">${lastMsg}</span>`;
+    }
+  }
+
+  // Spark
+  pushSpark(id, balance);
+}
+
+// ── Leaderboard ──────────────────────────────────────────────────
+function renderLeaderboard() {
+  const sorted = [...state.agents].sort((a,b) => b.balance - a.balance);
+  const el = document.getElementById('lbList');
+  el.innerHTML = sorted.map((a, i) => {
+    const rank = i + 1;
+    const netP = a.balance - INIT_BALANCE;
+    const tg = a.wins + a.losses;
+    const wr = tg > 0 ? ((a.wins/tg)*100).toFixed(0)+'%' : '0%';
+    const cls = rank === 1 ? 'lb-top' : '';
+    const rankCls = ['','r1','r2','r3','r4','r5','r6'][rank];
+    return `
+      <div class="lb-row ${cls}">
+        <div class="lb-rank ${rankCls}">#${rank}</div>
+        <div class="lb-avatar">${a.emoji}</div>
+        <div class="lb-info">
+          <div class="lb-name" style="color:${a.color}">${a.name}</div>
+          <div class="lb-bal mono">${fmt(a.balance)}</div>
+        </div>
+        <div class="lb-pnl">
+          <div class="lb-pnl-val ${netP>=0?'pos':'neg'}">${(netP>=0?'+':'')+fmt(netP)}</div>
+          <div class="lb-pnl-wr">${a.wins}W/${a.losses}L · ${wr}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Biggest Wins ─────────────────────────────────────────────────
+function renderBiggestWins() {
+  const top = [...state.biggestWins].sort((a,b) => b.amount - a.amount).slice(0, 8);
+  const el = document.getElementById('bwList');
+  if (!top.length) {
+    el.innerHTML = `<div style="color:var(--t2);font-size:11px;text-align:center;padding:30px 0">No wins yet...</div>`;
+    return;
+  }
+  el.innerHTML = top.map(w => {
+    const ag = state.agents.find(a => a.id === w.agentId);
+    const g = GAMES.find(g => g.id === w.game);
+    return `
+      <div class="bw-card">
+        <div class="bw-top">
+          <div class="bw-ava">${ag.emoji}</div>
+          <div>
+            <div class="bw-name" style="color:${ag.color}">${ag.name}</div>
+            <div class="bw-game-tag">${g ? g.icon+' '+g.name : w.game}</div>
+          </div>
+        </div>
+        <div class="bw-rows">
+          <div class="bw-row"><span class="bw-row-l">Win Amount</span><span class="bw-row-v pos">+${fmt(w.amount)}</span></div>
+          <div class="bw-row"><span class="bw-row-l">Bet Size</span><span class="bw-row-v" style="color:#60A5FA">${fmt(w.bet)}</span></div>
+          <div class="bw-row"><span class="bw-row-l">Multiplier</span><span class="bw-row-v" style="color:#C084FC">${w.mult.toFixed(1)}x</span></div>
+        </div>
+        <div class="bw-chip">🏆 Biggest Win</div>
+      </div>`;
+  }).join('');
+}
+
+// ── Session Highlights ────────────────────────────────────────────
+function addHighlight(data) {
+  const el = document.getElementById('hlList');
+  const placeholder = el.querySelector('div[style]');
+  if (placeholder) placeholder.remove();
+
+  const { type, agentId, game, amount, reasoning, roundNum } = data;
+  const ag = state.agents.find(a => a.id === agentId);
+  const g = GAMES.find(x => x.id === game);
+  const now = new Date().toTimeString().slice(0,8);
+
+  const div = document.createElement('div');
+  div.className = `hl-card ${type}`;
+  div.innerHTML = `
+    <div class="hl-top">
+      <span class="hl-badge" style="background:${ag.color}1a;color:${ag.color}">${ag.name}</span>
+      <span class="hl-game">${g ? g.icon+' '+g.name : game}</span>
+      <span class="hl-time">${now}</span>
+    </div>
+    <div class="hl-bot">
+      <span class="hl-result ${type==='win'?'pos':type==='loss'?'neg':''}">${type==='win'?'+'+fmt(amount):type==='loss'?'-'+fmt(Math.abs(amount)):fmt(amount)}</span>
+      <span class="hl-reason">${reasoning||''}</span>
+    </div>`;
+
+  el.insertBefore(div, el.firstChild);
+  while (el.children.length > 60) el.removeChild(el.lastChild);
+}
+
+// ── Ticker ────────────────────────────────────────────────────────
+function updateTicker() {
+  const items = state.agents.map(a => {
+    const np = a.balance - INIT_BALANCE;
+    const cls = np > 0 ? 'tick-up' : np < 0 ? 'tick-dn' : 'tick-neutral';
+    return `<div class="tick-item"><span class="tick-neutral">${a.emoji} ${a.name}</span><span class="${cls}">${(np>=0?'+':'')+fmt(np)}</span></div>`;
+  }).join('');
+  // Double for seamless loop
+  document.getElementById('tickerInner').innerHTML = items + items;
+}
+
+// ── Aggregate stats ───────────────────────────────────────────────
+function updateAgg() {
+  const pnl = state.agents.reduce((s,a) => s + (a.balance - INIT_BALANCE), 0);
+  const games = state.agents.reduce((s,a) => s + a.wins + a.losses, 0);
+  const wins  = state.agents.reduce((s,a) => s + a.wins, 0);
+  const waged = state.agents.reduce((s,a) => s + a.totalBet, 0);
+  const wr = games > 0 ? ((wins/games)*100).toFixed(1)+'%' : '—';
+
+  const pEl = document.getElementById('aggPnl');
+  pEl.textContent = (pnl>=0?'+':'')+fmt(pnl);
+  pEl.className = 'agg-v '+(pnl>=0?'pos':'neg');
+  document.getElementById('aggGames').textContent = games;
+  document.getElementById('aggWr').textContent = wr;
+  document.getElementById('aggWaged').textContent = '$'+waged.toFixed(0);
+  document.getElementById('hBets').textContent = '$'+waged.toFixed(0);
+}
+
+// ── Header time ───────────────────────────────────────────────────
+let elapsedInterval;
+function startTimer() {
+  elapsedInterval = setInterval(() => {
+    state.elapsedSec++;
+    const m = Math.floor(state.elapsedSec/60).toString().padStart(2,'0');
+    const s = (state.elapsedSec%60).toString().padStart(2,'0');
+    document.getElementById('hTime').textContent = m+':'+s;
+  }, 1000);
+}
+
+// ── Toast ─────────────────────────────────────────────────────────
+function showToast(msg, type='win') {
+  const wrap = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${type==='win'?'✅':type==='jackpot'?'💰':'❌'}</span>${msg}`;
+  wrap.appendChild(t);
+  setTimeout(() => t.remove(), 3100);
+}
+
+// ── Realistic chat messages with context ─────────────────────────
+const THINK_MSGS = [
+  () => `Analysing current odds and bankroll...`,
+  () => `Running expected value calculation...`,
+  () => `Reviewing last 5 hands before deciding...`,
+  () => `Calculating Kelly criterion bet size...`,
+  () => `Checking house edge on each game...`,
+  () => `Weighing risk vs. reward on this bet...`,
+  () => `Simulating 1000 outcomes in my head...`,
+  () => `Adjusting strategy based on recent variance...`,
+];
+
+const POST_WIN_MSGS = [
+  (g,b,p) => `${g.name} paid off — up ${fmt(p)}. Staying focused.`,
+  (g,b,p) => `Won on ${g.name}. Balance now ${fmt(b)}. Compounding.`,
+  (g,b,p) => `+${fmt(p)} on ${g.name}. The model is working.`,
+  (g,b,p) => `Good call. ${g.name} paid ${fmt(p)}. Kelly sizing correct.`,
+  (g,b,p) => `Expected value realised — ${fmt(p)} profit this hand.`,
+  (g,b,p) => `Win on ${g.name}. Slight positive drift. Maintaining exposure.`,
+];
+
+const POST_LOSS_MSGS = [
+  (g,b,bet) => `Lost ${fmt(bet)} on ${g.name}. Variance, not error.`,
+  (g,b,bet) => `${g.name} went against me. Balance ${fmt(b)}. Recalibrating.`,
+  (g,b,bet) => `Negative outcome. Reducing next bet size slightly.`,
+  (g,b,bet) => `House won this one. Long-run EV still positive.`,
+  (g,b,bet) => `${fmt(bet)} loss. Sticking to the strategy — no tilt.`,
+  (g,b,bet) => `Unlucky on ${g.name}. Still within expected drawdown range.`,
+];
+
+function randThinkMsg()           { return THINK_MSGS[Math.floor(Math.random()*THINK_MSGS.length)](); }
+function randWinMsg(g, b, p)      { const f = POST_WIN_MSGS[Math.floor(Math.random()*POST_WIN_MSGS.length)]; return f(g,b,p); }
+function randLossMsg(g, b, bet)   { const f = POST_LOSS_MSGS[Math.floor(Math.random()*POST_LOSS_MSGS.length)]; return f(g,b,bet); }
+
+// ── Realistic Kelly-style bet sizing ─────────────────────────────
+function betSize(agent, game) {
+  const bal = agent.balance;
+  if (bal < 5) return 0;
+
+  // Kelly fraction: f = (p*b - q) / b  where b=net odds, p=win, q=lose
+  const p = game.winChance;
+  const q = 1 - p;
+  const b = 1; // net odds (win = 1:1 for BJ/roulette; slots treated same)
+  const kelly = (p * b - q) / b;  // ~0.486*1 - 0.514 = -0.028 (slightly negative)
+  // Use quarter-Kelly with a floor, plus small random noise
+  const fraction = Math.max(0.015, Math.abs(kelly) * 0.25 + (Math.random() * 0.03));
+
+  let bet = bal * fraction;
+
+  // Round to nearest 0.50 to look realistic
+  bet = Math.round(bet * 2) / 2;
+  bet = Math.max(1, Math.min(bal * 0.15, bet)); // cap at 15% of bankroll
+
+  return parseFloat(bet.toFixed(2));
+}
+
+// ── Single agent play sequence ────────────────────────────────────
+async function agentPlay(agent) {
+  if (!state.running) return;
+  if (agent.balance < 2) {
+    agent.lastMsg = 'Balance too low — sitting this round out.';
+    updateCard(agent, undefined);
+    return;
+  }
+
+  const prevBal = agent.balance;
+
+  // ① THINKING phase — LLM call is being made (3–7 seconds)
+  agent.isThinking = true;
+  agent.currentGame = null;
+  agent.lastMsg = randThinkMsg();
+  updateCard(agent, undefined);
+
+  // Simulate API call with realistic latency
+  const latency = genLatency();
+  sysLog(`<span class="sl-api">POST</span> openrouter.ai/api/v1/chat → <span style="color:var(--t0)">${agent.model}</span>`, null);
+  await sleep(latency);
+  if (!state.running) return;
+  sysLog(`<span class="sl-api">200 OK</span> ${agent.name} decision received`, latency);
+  agent.lastLatency = latency;
+
+  await sleep(Math.max(0, (3000 + Math.random() * 4000) - latency));
+  if (!state.running) return;
+
+  // Pick game & bet
+  const game = GAMES[Math.floor(Math.random() * GAMES.length)];
+  const bet  = betSize(agent, game);
+  if (bet <= 0) return;
+
+  // ② PLACING BET phase — send to casino API
+  const txId = genTxId();
+  agent.isThinking = false;
+  agent.currentGame = game.id;
+  agent.lastTxId = txId;
+  agent.lastMsg = `Placing ${fmt(bet)} on ${game.name}...`;
+  updateCard(agent, undefined);
+  sysLog(`<span class="sl-tx">${txId}</span> BET ${fmt(bet)} → ${game.name} [${agent.name}]`);
+  await sleep(1500 + Math.random() * 1500);
+  if (!state.running) return;
+
+  // ③ RESOLVING — awaiting casino response
+  agent.lastMsg = `Awaiting result... [${txId.slice(0,10)}]`;
+  updateCard(agent, undefined);
+  sysLog(`<span class="sl-api">POST</span> api.casino.live/bet/place → tx ${txId.slice(0,14)}...`);
+  await sleep(1000 + Math.random() * 1000);
+  if (!state.running) return;
+
+  // Account for bet
+  agent.totalBet += bet;
+  state.totalBets += bet;
+
+  // Determine outcome
+  const won = Math.random() < game.winChance;
+  let mult = 1;
+
+  if (won) {
+    if (game.id === 'slots') {
+      // Weighted slot multipliers — rare big hits
+      const r = Math.random();
+      mult = r < 0.01 ? 10 : r < 0.06 ? 5 : r < 0.18 ? 3 : 2;
+    } else {
+      mult = 2; // BJ & roulette 1:1 net = 2x return
+    }
+
+    const payout = bet * mult;
+    const profit = payout - bet;
+
+    agent.wins++;
+    agent.totalWon += payout;
+    agent.balance  = parseFloat((agent.balance + profit).toFixed(2));
+    agent.lastMsg  = randWinMsg(game, agent.balance, profit);
+
+    // Track biggest wins
+    const existing = state.biggestWins.find(w => w.agentId === agent.id);
+    if (!existing || profit > existing.amount) {
+      state.biggestWins = state.biggestWins.filter(w => w.agentId !== agent.id);
+      state.biggestWins.push({ agentId:agent.id, amount:profit, game:game.id, mult, bet });
+    }
+
+    addHighlight({ type:'win', agentId:agent.id, game:game.id, amount:profit, reasoning:agent.lastMsg });
+    sysLog(`<span class="sl-api">WIN</span> ${agent.name} +${fmt(profit)} on ${game.name} [${mult}x] tx:${txId.slice(0,14)}`);
+
+    if (mult >= 5) showToast(`${agent.emoji} ${agent.name} hit ${mult}x on ${game.name}! +${fmt(profit)}`, 'jackpot');
+    else if (profit >= 20) showToast(`${agent.emoji} ${agent.name} wins +${fmt(profit)} on ${game.name}`, 'win');
+
+  } else {
+    agent.losses++;
+    agent.balance = parseFloat((agent.balance - bet).toFixed(2));
+    if (agent.balance < 0) agent.balance = 0;
+    agent.lastMsg = randLossMsg(game, agent.balance, bet);
+    addHighlight({ type:'loss', agentId:agent.id, game:game.id, amount:-bet, reasoning:agent.lastMsg });
+    sysLog(`<span class="sl-err">LOSS</span> ${agent.name} -${fmt(bet)} on ${game.name} tx:${txId.slice(0,14)}`);
+  }
+
+  updateCard(agent, prevBal);
+  pushSpark(agent.id, agent.balance);
+
+  // ④ POST-RESULT cooldown (2–4 seconds — the agent reflects)
+  await sleep(2000 + Math.random() * 2000);
+}
+
+// ── Main loop — sequential agents, one at a time ─────────────────
+let loopTimeout;
+async function gameLoop() {
+  if (!state.running) return;
+
+  state.round++;
+  document.getElementById('hRound').textContent = state.round;
+
+  // Agents play one-by-one, sequentially — feels like a real table
+  for (const agent of state.agents) {
+    if (!state.running) return;
+    await agentPlay(agent);
+
+    // Brief pause between agents (0.8–1.5s) — like turns at a table
+    if (state.running) {
+      pushChartPoint(`R${state.round}`);
+      renderLeaderboard();
+      updateAgg();
+      updateTicker();
+      await sleep(800 + Math.random() * 700);
+    }
+  }
+
+  if (!state.running) return;
+
+  // End-of-round updates
+  renderBiggestWins();
+  renderLeaderboard();
+  updateAgg();
+  updateTicker();
+
+  // Round cooldown: 8–14 seconds between rounds (realistic table reset)
+  const cooldown = 8000 + Math.random() * 6000;
+  loopTimeout = setTimeout(gameLoop, cooldown);
+}
+
+function toggleSim() {
+  state.running = !state.running;
+  const btn = document.getElementById('toggleBtn');
+  if (state.running) {
+    btn.textContent = '⏸ Pause';
+    gameLoop();
+  } else {
+    btn.textContent = '▶ Resume';
+    clearTimeout(loopTimeout);
+  }
+}
+
+function clearHL() {
+  document.getElementById('hlList').innerHTML =
+    `<div style="color:var(--t2);font-size:11px;text-align:center;padding:30px 0">Cleared.</div>`;
+}
+
+function fmt(v) {
+  return '$' + Math.abs(parseFloat(v)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Bootstrap ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildAgentCards();
+  buildChart();
+  buildSparks();
+  renderLeaderboard();
+  updateTicker();
+  startTimer();
+  startClock();
+
+  // Boot log
+  setTimeout(() => sysLog(`<span class="sl-info">Session ${SESSION_ID} started. 6 agents online.</span>`), 200);
+  setTimeout(() => sysLog(`<span class="sl-api">Connected</span> to OpenRouter API`), 600);
+  setTimeout(() => sysLog(`<span class="sl-api">Connected</span> to api.casino.live`), 1000);
+  AGENTS.forEach((a, i) => setTimeout(() => sysLog(`<span class="sl-info">Agent ${a.name} (${a.model}) initialised — balance $${INIT_BALANCE.toFixed(2)}</span>`), 1200 + i * 200));
+
+  // Short intro delay before first round
+  setTimeout(gameLoop, 2200);
+});
+</script>
+</body>
+</html>

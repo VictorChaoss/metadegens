@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment — NEVER commit this (contains admin password)
+.env
+.env.local
+.env.*.local
+
+# Database — live data, not for git
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+build/

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Metadegens Arena — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg:#030307;--bg1:#070710;--bg2:#0d0d1a;
+      --card:rgba(255,255,255,0.04);--card-h:rgba(255,255,255,0.07);
+      --b0:rgba(255,255,255,0.06);--b1:rgba(255,255,255,0.1);--b2:rgba(255,255,255,0.18);
+      --green:#00FFB2;--red:#FF3366;--gold:#F59E0B;--purple:#8B5CF6;--blue:#3B9EFF;
+      --t0:rgba(255,255,255,0.95);--t1:rgba(255,255,255,0.6);--t2:rgba(255,255,255,0.35);
+      --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;background:var(--bg);color:var(--t0);font-family:var(--font);font-size:13px;-webkit-font-smoothing:antialiased}
+    body{padding:0}
+    *{scrollbar-width:thin;scrollbar-color:var(--b1) transparent}
+
+    /* ── LOGIN ── */
+    .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(139,92,246,.12),transparent)}
+    .login-box{width:360px;padding:36px;background:var(--bg1);border:1px solid var(--b1);border-radius:20px;
+      box-shadow:0 40px 80px rgba(0,0,0,.6)}
+    .login-icon{font-size:36px;text-align:center;margin-bottom:16px;
+      filter:drop-shadow(0 0 16px rgba(0,255,178,.5))}
+    .login-title{font-size:20px;font-weight:900;text-align:center;margin-bottom:4px;
+      background:linear-gradient(120deg,#00FFB2,#8B5CF6);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .login-sub{font-size:11px;color:var(--t2);text-align:center;margin-bottom:24px;letter-spacing:.5px}
+    .field{margin-bottom:14px}
+    .field label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
+    .field input{width:100%;padding:10px 14px;background:var(--bg2);border:1px solid var(--b1);border-radius:8px;
+      color:var(--t0);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s}
+    .field input:focus{border-color:var(--purple)}
+    .login-btn{width:100%;padding:12px;border-radius:10px;border:none;cursor:pointer;font-weight:800;font-size:13px;
+      background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;
+      transition:opacity .2s;font-family:var(--font);margin-top:6px}
+    .login-btn:hover{opacity:.88}
+    .login-err{color:var(--red);font-size:11px;text-align:center;margin-top:10px;display:none}
+
+    /* ── ADMIN PANEL ── */
+    .admin-wrap{display:none;min-height:100vh;flex-direction:column}
+    .admin-header{
+      position:sticky;top:0;z-index:100;height:54px;
+      display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+      background:rgba(3,3,7,.92);backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--b0);
+    }
+    .admin-logo{display:flex;align-items:center;gap:10px}
+    .admin-logo-icon{font-size:20px}
+    .admin-logo-text{font-size:13px;font-weight:900;letter-spacing:2px;
+      background:linear-gradient(120deg,#00FFB2,#8B5CF6);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .admin-badge{padding:3px 10px;border-radius:999px;background:rgba(139,92,246,.15);
+      border:1px solid rgba(139,92,246,.3);font-size:10px;font-weight:700;color:var(--purple);letter-spacing:1px}
+    .header-right{display:flex;align-items:center;gap:12px}
+    .status-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;
+      border-radius:999px;border:1px solid var(--b1);background:var(--card);font-size:10px;font-weight:600}
+    .status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);
+      animation:pulse 1.4s ease-out infinite}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,255,178,.7)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+    .status-dot.stopped{background:var(--red);animation:none}
+    .logout-btn{padding:5px 12px;border-radius:999px;background:var(--card);border:1px solid var(--b1);
+      color:var(--t1);cursor:pointer;font-size:10px;font-weight:700;letter-spacing:1px;
+      font-family:var(--font);text-transform:uppercase;transition:all .2s}
+    .logout-btn:hover{background:var(--card-h);color:var(--t0)}
+
+    .admin-body{flex:1;display:grid;grid-template-columns:320px 1fr;gap:0}
+
+    /* ── SIDEBAR ── */
+    .sidebar{border-right:1px solid var(--b0);display:flex;flex-direction:column;overflow-y:auto;padding:16px}
+    .sidebar-section{margin-bottom:20px}
+    .sidebar-title{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+      color:var(--t2);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--b0)}
+
+    /* Control buttons */
+    .ctrl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .ctrl-btn{
+      padding:12px 10px;border-radius:10px;border:1px solid var(--b1);cursor:pointer;
+      font-weight:700;font-size:11.5px;font-family:var(--font);
+      display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s;
+    }
+    .ctrl-btn .btn-icon{font-size:18px}
+    .ctrl-btn.start{background:rgba(0,255,178,.08);border-color:rgba(0,255,178,.3);color:var(--green)}
+    .ctrl-btn.start:hover{background:rgba(0,255,178,.15);border-color:var(--green)}
+    .ctrl-btn.stop{background:rgba(255,51,102,.06);border-color:rgba(255,51,102,.25);color:var(--red)}
+    .ctrl-btn.stop:hover{background:rgba(255,51,102,.12);border-color:var(--red)}
+    .ctrl-btn.reset{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.25);color:var(--gold)}
+    .ctrl-btn.reset:hover{background:rgba(245,158,11,.12);border-color:var(--gold)}
+    .ctrl-btn.view{background:var(--card);border-color:var(--b1);color:var(--t1)}
+    .ctrl-btn.view:hover{background:var(--card-h);color:var(--t0)}
+    .ctrl-btn:disabled{opacity:.35;cursor:not-allowed}
+
+    /* Stats */
+    .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .stat-card{padding:10px;border-radius:8px;background:var(--card);border:1px solid var(--b0)}
+    .stat-l{font-size:8.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t2);margin-bottom:3px}
+    .stat-v{font-size:18px;font-weight:800;font-family:var(--mono)}
+    .pos{color:var(--green)}.neg{color:var(--red)}
+
+    /* Config */
+    .cfg-row{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+    .cfg-row label{font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t2)}
+    .cfg-row input{width:100%;padding:8px 10px;background:var(--bg2);border:1px solid var(--b1);
+      border-radius:6px;color:var(--t0);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .2s}
+    .cfg-row input:focus{border-color:var(--purple)}
+    .apply-btn{width:100%;padding:9px;border-radius:8px;border:none;cursor:pointer;
+      font-weight:700;font-size:11px;background:var(--purple);color:#fff;
+      font-family:var(--font);transition:opacity .2s;margin-top:4px}
+    .apply-btn:hover{opacity:.85}
+
+    /* ── MAIN CONTENT ── */
+    .main-content{display:flex;flex-direction:column;overflow:hidden}
+    .tab-bar{display:flex;border-bottom:1px solid var(--b0);padding:0 20px;flex-shrink:0}
+    .tab{padding:12px 16px;font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;
+      border-bottom:2px solid transparent;color:var(--t2);transition:all .2s;text-transform:uppercase}
+    .tab.active{color:var(--green);border-bottom-color:var(--green)}
+    .tab:hover:not(.active){color:var(--t1)}
+    .tab-content{flex:1;overflow:auto;padding:20px}
+    .tab-pane{display:none}.tab-pane.active{display:block}
+
+    /* Live view */
+    .live-agents{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+    .agent-mini{padding:12px;border-radius:10px;background:var(--card);border:1px solid var(--b0);
+      border-left:3px solid var(--ac,#555);transition:border-color .3s}
+    .am-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .am-emoji{font-size:18px}
+    .am-name{font-size:12px;font-weight:700;color:var(--ac,#aaa)}
+    .am-bal{font-size:20px;font-weight:800;font-family:var(--mono);margin-bottom:4px}
+    .am-row{display:flex;justify-content:space-between;font-size:10px;color:var(--t2)}
+    .am-pnl{font-size:11px;font-weight:700;font-family:var(--mono)}
+
+    /* Log */
+    .log-list{background:var(--bg1);border:1px solid var(--b0);border-radius:10px;
+      padding:10px;font-family:var(--mono);font-size:10px;height:420px;overflow-y:auto;
+      display:flex;flex-direction:column;gap:2px}
+    .log-entry{display:flex;gap:8px;padding:3px 4px;border-radius:4px}
+    .log-entry:hover{background:rgba(255,255,255,.03)}
+    .log-time{color:var(--t2);flex-shrink:0}
+    .log-msg{flex:1;color:var(--t1)}
+    .log-msg .g{color:var(--green)}.log-msg .r{color:var(--red)}.log-msg .b{color:var(--blue)}.log-msg .p{color:var(--purple)}
+
+    /* History table */
+    .history-table{width:100%;border-collapse:collapse}
+    .history-table th{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+      color:var(--t2);padding:8px 10px;border-bottom:1px solid var(--b0);text-align:left}
+    .history-table td{padding:9px 10px;border-bottom:1px solid var(--b0);font-size:11px}
+    .history-table tr:hover td{background:var(--card)}
+    .status-chip{display:inline-flex;padding:2px 8px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:.5px}
+    .status-chip.complete{background:rgba(0,255,178,.1);color:var(--green);border:1px solid rgba(0,255,178,.2)}
+    .status-chip.running{background:rgba(59,158,255,.1);color:var(--blue);border:1px solid rgba(59,158,255,.2)}
+
+    /* feedback toast */
+    .feedback{position:fixed;bottom:24px;right:24px;padding:10px 18px;border-radius:10px;
+      background:rgba(0,255,178,.12);border:1px solid rgba(0,255,178,.35);color:var(--green);
+      font-size:12px;font-weight:600;animation:tin .25s ease,tout .25s ease 2.5s forwards;
+      pointer-events:none;z-index:999}
+    @keyframes tin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes tout{to{opacity:0;transform:translateY(10px)}}
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN ─────────────────────────────────────────────────────────────── -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="login-icon">🔐</div>
+    <div class="login-title">Admin Access</div>
+    <div class="login-sub">METADEGENS ARENA · CONTROL PANEL</div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="pwInput" placeholder="Enter admin password" autocomplete="current-password"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Unlock Panel</button>
+    <div class="login-err" id="loginErr">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- ── ADMIN PANEL ────────────────────────────────────────────────────────── -->
+<div class="admin-wrap" id="adminWrap">
+
+  <header class="admin-header">
+    <div class="admin-logo">
+      <div class="admin-logo-icon">🎰</div>
+      <div class="admin-logo-text">METADEGENS</div>
+      <div class="admin-badge">ADMIN</div>
+    </div>
+    <div class="header-right">
+      <div class="status-pill">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Connecting...</span>
+      </div>
+      <div class="status-pill">👁 <span id="viewerCount">0</span> watching</div>
+      <div class="status-pill" style="font-family:var(--mono);font-size:9px" id="sessionKeyBadge">—</div>
+      <button class="logout-btn" onclick="logout()">Log Out</button>
+    </div>
+  </header>
+
+  <div class="admin-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- Controls -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">⚡ Session Controls</div>
+        <div class="ctrl-grid">
+          <button class="ctrl-btn start" id="btnStart" onclick="adminAction('start')">
+            <span class="btn-icon">▶</span>Start
+          </button>
+          <button class="ctrl-btn stop" id="btnStop" onclick="adminAction('stop')">
+            <span class="btn-icon">⏹</span>Stop
+          </button>
+          <button class="ctrl-btn reset" onclick="adminAction('reset')">
+            <span class="btn-icon">🔄</span>Reset
+          </button>
+          <button class="ctrl-btn view" onclick="window.open('/','_blank')">
+            <span class="btn-icon">📺</span>View Live
+          </button>
+        </div>
+      </div>
+
+      <!-- Live stats -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">📊 Live Stats</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-l">Round</div><div class="stat-v" id="sRound">—</div></div>
+          <div class="stat-card"><div class="stat-l">Sessions</div><div class="stat-v" id="sSessions">0</div></div>
+          <div class="stat-card"><div class="stat-l">Wagered</div><div class="stat-v" id="sWagered">$0</div></div>
+          <div class="stat-card"><div class="stat-l">Total Bets</div><div class="stat-v" id="sBets">0</div></div>
+        </div>
+      </div>
+
+      <!-- Config -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">⚙️ Config (next session)</div>
+        <div class="cfg-row">
+          <label>Starting Balance ($)</label>
+          <input type="number" id="cfgBalance" value="1000" min="100" max="100000"/>
+        </div>
+        <div class="cfg-row">
+          <label>Number of Agents</label>
+          <input type="number" id="cfgAgents" value="6" min="1" max="6"/>
+        </div>
+        <button class="apply-btn" onclick="adminAction('reset')">Apply & Restart Now</button>
+      </div>
+
+      <!-- Countdown -->
+      <div class="sidebar-section" id="countdownSection" style="display:none">
+        <div class="sidebar-title">⏱ Next Session In</div>
+        <div style="font-size:42px;font-weight:900;font-family:var(--mono);color:var(--gold);text-align:center;padding:10px 0" id="countdownVal">60</div>
+        <div style="font-size:10px;color:var(--t2);text-align:center">Auto-restarting...</div>
+      </div>
+
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+      <div class="tab-bar">
+        <div class="tab active" onclick="switchTab('live',this)">🟢 Live View</div>
+        <div class="tab" onclick="switchTab('log',this)">🖥 System Log</div>
+        <div class="tab" onclick="switchTab('history',this)">📋 Session History</div>
+      </div>
+
+      <div class="tab-content">
+
+        <!-- LIVE VIEW -->
+        <div class="tab-pane active" id="tab-live">
+          <div class="live-agents" id="liveAgents"></div>
+        </div>
+
+        <!-- SYSTEM LOG -->
+        <div class="tab-pane" id="tab-log">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+            <button class="logout-btn" onclick="clearAdminLog()">Clear</button>
+          </div>
+          <div class="log-list" id="adminLog">
+            <div class="log-entry"><span class="log-time">--:--:--</span><span class="log-msg"><span class="b">Waiting for events...</span></span></div>
+          </div>
+        </div>
+
+        <!-- HISTORY -->
+        <div class="tab-pane" id="tab-history">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Session Key</th>
+                <th>Started</th>
+                <th>Ended</th>
+                <th>Winner</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody">
+              <tr><td colspan="5" style="color:var(--t2);text-align:center;padding:30px">No sessions yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Auth ──────────────────────────────────────────────────────────────────────
+let ADMIN_KEY = '';
+const AGENTS_META = [
+  { id:'qwen',     name:'Qwen 2.5',    emoji:'🟣', color:'#A78BFA' },
+  { id:'gemini',   name:'Gemini 2.5',  emoji:'💎', color:'#38BDF8' },
+  { id:'deepseek', name:'DeepSeek V3', emoji:'🔵', color:'#60A5FA' },
+  { id:'claude',   name:'Claude 4.5',  emoji:'🟠', color:'#FB923C' },
+  { id:'grok',     name:'Grok 4',      emoji:'⚪', color:'#D1D5DB' },
+  { id:'gpt5',     name:'GPT-5',       emoji:'🟢', color:'#22C55E' },
+];
+
+function doLogin() {
+  const pw = document.getElementById('pwInput').value;
+  fetch('/api/admin/verify?key=' + encodeURIComponent(pw))
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        ADMIN_KEY = pw;
+        document.getElementById('loginWrap').style.display = 'none';
+        document.getElementById('adminWrap').style.display = 'flex';
+        initAdmin();
+      } else {
+        showLoginErr();
+      }
+    })
+    .catch(() => showLoginErr());
+}
+function showLoginErr() {
+  const e = document.getElementById('loginErr');
+  e.style.display = 'block';
+  setTimeout(() => e.style.display = 'none', 3000);
+}
+function logout() {
+  ADMIN_KEY = '';
+  document.getElementById('adminWrap').style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'flex';
+}
+document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ── Admin init ────────────────────────────────────────────────────────────────
+let es;
+function initAdmin() {
+  loadHistory();
+  buildAgentCards();
+
+  es = new EventSource('/api/events');
+  es.onmessage = handleEvent;
+
+  const events = [
+    'connected','coordinator:initialized','agent:result','round:complete',
+    'stats:update','session:complete','session:started','session:countdown','viewers'
+  ];
+  events.forEach(ev => es.addEventListener(ev, e => handleEvent(e, ev)));
+}
+
+let agentData = {};
+
+function buildAgentCards() {
+  const grid = document.getElementById('liveAgents');
+  grid.innerHTML = AGENTS_META.map(a => `
+    <div class="agent-mini" id="am-${a.id}" style="--ac:${a.color}">
+      <div class="am-head">
+        <div class="am-emoji">${a.emoji}</div>
+        <div class="am-name">${a.name}</div>
+      </div>
+      <div class="am-bal" id="ambal-${a.id}" style="color:${a.color}">$1,000.00</div>
+      <div class="am-row">
+        <span id="amwr-${a.id}" style="color:var(--t2)">W:0 L:0</span>
+        <span class="am-pnl" id="ampnl-${a.id}">$0.00</span>
+      </div>
+    </div>`).join('');
+}
+
+function handleEvent(e, etype) {
+  let data;
+  try { data = JSON.parse(e.data); } catch { return; }
+  const type = etype || e.type;
+
+  if (type === 'connected' || type === 'stats:update') {
+    updateHeader(data);
+    if (data.agents) data.agents.forEach(updateAgentCard);
+  }
+  if (type === 'agent:result') {
+    updateAgentCard(data);
+    addLog(`<span class="${data.outcome==='win'?'g':'r'}">${data.outcome.toUpperCase()}</span> ${data.name||data.agentId} ${data.outcome==='win'?'+':'-'}$${Math.abs(data.profit||data.bet||0).toFixed(2)} on ${data.game||''}`);
+  }
+  if (type === 'session:started') {
+    addLog(`<span class="b">▶ Session ${data.sessionKey} started</span>`);
+    document.getElementById('sessionKeyBadge').textContent = data.sessionKey || '—';
+    updateStatusDot(true);
+  }
+  if (type === 'session:complete') {
+    addLog(`<span class="p">■ Session complete</span>`);
+    updateStatusDot(false);
+    loadHistory();
+  }
+  if (type === 'session:countdown') {
+    const cd = data.seconds;
+    document.getElementById('countdownSection').style.display = cd > 0 ? '' : 'none';
+    document.getElementById('countdownVal').textContent = cd;
+  }
+  if (type === 'viewers') {
+    document.getElementById('viewerCount').textContent = data.count || 0;
+  }
+  if (type === 'round:complete') {
+    const el = document.getElementById('sRound');
+    if (el && data.round) el.textContent = data.round;
+  }
+}
+
+function updateHeader(data) {
+  if (data.sessionKey) document.getElementById('sessionKeyBadge').textContent = data.sessionKey;
+  if (data.sessionCount !== undefined) document.getElementById('sSessions').textContent = data.sessionCount;
+  if (data.viewerCount !== undefined) document.getElementById('viewerCount').textContent = data.viewerCount;
+  updateStatusDot(data.isRunning);
+}
+
+function updateAgentCard(a) {
+  const id = a.id || a.agentId;
+  if (!id) return;
+  const bal = parseFloat(a.balance || 0);
+  const pnl = bal - 1000;
+  const balEl = document.getElementById(`ambal-${id}`);
+  const pnlEl = document.getElementById(`ampnl-${id}`);
+  const wrEl  = document.getElementById(`amwr-${id}`);
+  if (balEl) balEl.textContent = fmt(bal);
+  if (pnlEl) { pnlEl.textContent = (pnl>=0?'+':'')+fmt(pnl); pnlEl.className = 'am-pnl '+(pnl>=0?'pos':'neg'); }
+  if (wrEl)  wrEl.textContent = `W:${a.wins||0} L:${a.losses||0}`;
+}
+
+function updateStatusDot(running) {
+  const dot  = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  if (running) {
+    dot.className  = 'status-dot';
+    text.textContent = 'Running';
+  } else {
+    dot.className  = 'status-dot stopped';
+    text.textContent = 'Stopped';
+  }
+}
+
+function fmt(v) {
+  return '$' + Math.abs(parseFloat(v)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+// ── Admin actions ─────────────────────────────────────────────────────────────
+async function adminAction(action) {
+  const balance = parseInt(document.getElementById('cfgBalance').value) || 1000;
+  const agents  = parseInt(document.getElementById('cfgAgents').value) || 6;
+
+  const body = action !== 'stop' ? { initialBalance: balance, agentCount: agents } : {};
+
+  const r = await fetch(`/api/admin/${action}?key=${encodeURIComponent(ADMIN_KEY)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Key': ADMIN_KEY },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json();
+  if (data.success || data.sessionKey) {
+    showFeedback(action === 'start' ? '▶ Session started' : action === 'stop' ? '⏹ Session stopped' : '🔄 Session reset');
+    addLog(`<span class="b">Admin: ${action} executed</span>`);
+  } else {
+    showFeedback('❌ ' + (data.error || 'Error'), true);
+  }
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  try {
+    const r = await fetch(`/api/admin/sessions?key=${encodeURIComponent(ADMIN_KEY)}`);
+    const { sessions } = await r.json();
+    const tbody = document.getElementById('historyBody');
+    if (!sessions?.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--t2);text-align:center;padding:30px">No sessions yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = sessions.map(s => `
+      <tr>
+        <td style="font-family:var(--mono);font-size:10px;color:var(--purple)">${s.session_key}</td>
+        <td style="color:var(--t1)">${s.started_at?.slice(0,19).replace('T',' ') || '—'}</td>
+        <td style="color:var(--t2)">${s.ended_at?.slice(0,19).replace('T',' ') || 'Running'}</td>
+        <td style="color:var(--gold)">${s.winner_id || '—'}</td>
+        <td><span class="status-chip ${s.status}">${s.status}</span></td>
+      </tr>`).join('');
+  } catch (e) { /* ignore */ }
+}
+
+// ── Log ───────────────────────────────────────────────────────────────────────
+function addLog(html) {
+  const list = document.getElementById('adminLog');
+  const now  = new Date().toISOString().slice(11,19);
+  const el   = document.createElement('div');
+  el.className = 'log-entry';
+  el.innerHTML = `<span class="log-time">${now}</span><span class="log-msg">${html}</span>`;
+  list.insertBefore(el, list.firstChild);
+  while (list.children.length > 200) list.removeChild(list.lastChild);
+}
+function clearAdminLog() {
+  document.getElementById('adminLog').innerHTML =
+    '<div class="log-entry"><span class="log-time">' + new Date().toISOString().slice(11,19) + '</span><span class="log-msg"><span class="b">Log cleared</span></span></div>';
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'history') loadHistory();
+}
+
+// ── Feedback toast ────────────────────────────────────────────────────────────
+function showFeedback(msg) {
+  const el = document.createElement('div');
+  el.className = 'feedback';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+</script>
+</body>
+</html>
