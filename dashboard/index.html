@@ -842,7 +842,7 @@ function buildAgentCards() {
   grid.innerHTML = state.agents.map(a => `
     <div class="ag-card" id="card-${a.id}" style="--ac:${a.color};--acd:${a.dimColor}">
       <div class="ag-head">
-        <div class="ag-ava"><img src="${a.iconSrc}" alt="${a.name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;background:white;"/></div>
+        <div class="ag-ava"><img src="${a.iconSrc}" alt="${a.name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/></div>
         <div class="ag-info">
           <div class="ag-name">${a.name}</div>
           <div class="ag-status" id="status-${a.id}">● Active</div>
@@ -977,7 +977,7 @@ function renderLeaderboard() {
     return `
       <div class="lb-row ${r===1?'lb-top':''}" onclick="highlightAgent('${a.id}')">
         <div class="lb-rank r${r}">${r}</div>
-        <div class="lb-avatar"><img src="${a.iconSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;background:white;"/></div>
+        <div class="lb-avatar"><img src="${a.iconSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/></div>
         <div class="lb-info">
           <div class="lb-name" style="color:${a.color}">${a.name}</div>
           <div class="lb-bal mono">${fmt(a.balance)}</div>
@@ -1004,7 +1004,7 @@ function renderBiggestWins() {
     return `
       <div class="bw-card">
         <div class="bw-top">
-          <div class="bw-ava"><img src="${ag.iconSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;background:white;"/></div>
+          <div class="bw-ava"><img src="${ag.iconSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/></div>
           <div>
             <div class="bw-name" style="color:${ag.color}">${ag.name}</div>
             <div class="bw-game-tag">${g ? g.icon+' '+g.name : w.game}</div>
@@ -1037,7 +1037,7 @@ function addHighlight(data) {
   div.innerHTML = `
     <div class="hl-top">
       <div class="hl-agent">
-        <img src="${ag.iconSrc}" style="width:16px;height:16px;border-radius:50%;object-fit:cover;background:white;"/>
+        <img src="${ag.iconSrc}" style="width:16px;height:16px;border-radius:50%;object-fit:cover;"/>
         <span style="color:${ag.color}">${ag.name}</span>
       </div>
       <span class="hl-time">${nowUTC()}</span>
@@ -1053,7 +1053,7 @@ function updateTicker() {
   const items = state.agents.map(a => {
     const np = a.balance - INIT_BALANCE;
     const cls = np > 0 ? 'tick-up' : np < 0 ? 'tick-dn' : 'tick-neutral';
-    return `<div class="tick-item"><span class="tick-neutral"><img src="${a.iconSrc}" style="width:12px;height:12px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;background:white;"/> ${a.name}</span><span class="${cls}">${(np>=0?'+':'')+fmt(np)}</span></div>`;
+    return `<div class="tick-item"><span class="tick-neutral"><img src="${a.iconSrc}" style="width:12px;height:12px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;"/> ${a.name}</span><span class="${cls}">${(np>=0?'+':'')+fmt(np)}</span></div>`;
   }).join('');
   // Double for seamless loop
   document.getElementById('tickerInner').innerHTML = items + items;
