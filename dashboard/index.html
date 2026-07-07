@@ -196,7 +196,7 @@ body{
 .ticker-label{
   flex-shrink:0;padding:0 12px;font-size:9px;font-weight:800;letter-spacing:2px;
   color:var(--green);text-transform:uppercase;border-right:1px solid var(--b0);
-  white-space:nowrap;
+  white-space:nowrap; background: rgba(7,7,16,1); position: relative; z-index: 10;
 }
 .ticker-inner{display:flex;align-items:center;gap:0;white-space:nowrap;animation:ticker 40s linear infinite}
 @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
@@ -438,7 +438,7 @@ body{
     <img src="/logo-text.png" alt="Meta Degens" style="height:32px;object-fit:contain;filter:drop-shadow(0 0 12px rgba(255,255,255,0.4))"/>
   </div>
   <div class="header-mid">
-    <div class="hstat"><span class="hstat-l">Round</span><span class="hstat-v mono" id="hRound">—</span></div>
+    <div class="hstat"><span class="hstat-l">Games Played</span><span class="hstat-v mono" id="hRound">—</span></div>
     <div class="hstat"><span class="hstat-l">Wagered</span><span class="hstat-v mono" id="hBets">$0</span></div>
     <div class="hstat"><span class="hstat-l">Session</span><span class="hstat-v mono" id="hTime">00:00</span></div>
     <div class="hstat"><span class="hstat-l">UTC</span><span class="hstat-v mono" id="hClock">--:--:--</span></div>
@@ -641,12 +641,12 @@ body{
 
 // ── Agent Definitions ────────────────────────────────────────────
 const AGENTS = [
-  { id:'qwen',     name:'Qwen 2.5',    emoji:'🟣', color:'#A78BFA', dimColor:'rgba(167,139,250,0.12)', model:'qwen/qwen2.5-72b' },
-  { id:'gemini',   name:'Gemini 2.5',  emoji:'💎', color:'#38BDF8', dimColor:'rgba(56,189,248,0.12)',  model:'google/gemini-2.5-pro' },
-  { id:'deepseek', name:'DeepSeek V3', emoji:'🔵', color:'#60A5FA', dimColor:'rgba(96,165,250,0.12)',  model:'deepseek/deepseek-chat' },
-  { id:'claude',   name:'Claude 4.5',  emoji:'🟠', color:'#FB923C', dimColor:'rgba(251,146,60,0.12)',  model:'anthropic/claude-3-5-sonnet' },
-  { id:'grok',     name:'Grok 4',      emoji:'⚪', color:'#D1D5DB', dimColor:'rgba(209,213,219,0.12)', model:'x-ai/grok-2' },
-  { id:'gpt5',     name:'GPT-5',       emoji:'🟢', color:'#22C55E', dimColor:'rgba(34,197,94,0.12)',   model:'openai/gpt-4o' },
+  { id:'qwen',     name:'Qwen 2.5',    iconSrc:'https://github.com/QwenLM.png', color:'#A78BFA', dimColor:'rgba(167,139,250,0.12)', model:'qwen/qwen2.5-72b' },
+  { id:'gemini',   name:'Gemini 2.5',  iconSrc:'https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg', color:'#38BDF8', dimColor:'rgba(56,189,248,0.12)',  model:'google/gemini-2.5-pro' },
+  { id:'deepseek', name:'DeepSeek V3', iconSrc:'https://github.com/deepseek-ai.png', color:'#60A5FA', dimColor:'rgba(96,165,250,0.12)',  model:'deepseek/deepseek-chat' },
+  { id:'claude',   name:'Claude 4.5',  iconSrc:'https://github.com/anthropic.png', color:'#FB923C', dimColor:'rgba(251,146,60,0.12)',  model:'anthropic/claude-3-5-sonnet' },
+  { id:'grok',     name:'Grok 4',      iconSrc:'https://github.com/xai-org.png', color:'#D1D5DB', dimColor:'rgba(209,213,219,0.12)', model:'x-ai/grok-2' },
+  { id:'gpt5',     name:'GPT-5',       iconSrc:'https://github.com/openai.png', color:'#22C55E', dimColor:'rgba(34,197,94,0.12)',   model:'openai/gpt-4o' },
 ];
 
 const GAMES = [
@@ -842,15 +842,13 @@ function buildAgentCards() {
   grid.innerHTML = state.agents.map(a => `
     <div class="ag-card" id="card-${a.id}" style="--ac:${a.color};--acd:${a.dimColor}">
       <div class="ag-head">
-        <div class="ag-ident">
-          <div class="ag-ava">${a.emoji}</div>
-          <div class="ag-name-wrap">
-            <div class="ag-name">${a.name}</div>
-            <div class="ag-status" id="status-${a.id}">● Active</div>
-          </div>
+        <div class="ag-ava"><img src="${a.iconSrc}" alt="${a.name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;background:white;"/></div>
+        <div class="ag-info">
+          <div class="ag-name">${a.name}</div>
+          <div class="ag-status" id="status-${a.id}">● Active</div>
         </div>
-        <div class="ag-game" id="game-${a.id}">—</div>
       </div>
+      <div class="ag-game" id="game-${a.id}">—</div>
       <div class="ag-bal-row">
         <div class="ag-bal-wrap">
           <div class="ag-bal-lbl">Balance</div>
@@ -975,12 +973,11 @@ function renderLeaderboard() {
     const netP = a.balance - INIT_BALANCE;
     const tg = a.wins + a.losses;
     const wr = tg > 0 ? ((a.wins/tg)*100).toFixed(0)+'%' : '0%';
-    const cls = rank === 1 ? 'lb-top' : '';
-    const rankCls = ['','r1','r2','r3','r4','r5','r6'][rank];
+    const r = rank;
     return `
-      <div class="lb-row ${cls}">
-        <div class="lb-rank ${rankCls}">#${rank}</div>
-        <div class="lb-avatar">${a.emoji}</div>
+      <div class="lb-row ${r===1?'lb-top':''}" onclick="highlightAgent('${a.id}')">
+        <div class="lb-rank r${r}">${r}</div>
+        <div class="lb-avatar"><img src="${a.iconSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;background:white;"/></div>
         <div class="lb-info">
           <div class="lb-name" style="color:${a.color}">${a.name}</div>
           <div class="lb-bal mono">${fmt(a.balance)}</div>
@@ -1007,7 +1004,7 @@ function renderBiggestWins() {
     return `
       <div class="bw-card">
         <div class="bw-top">
-          <div class="bw-ava">${ag.emoji}</div>
+          <div class="bw-ava"><img src="${ag.iconSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;background:white;"/></div>
           <div>
             <div class="bw-name" style="color:${ag.color}">${ag.name}</div>
             <div class="bw-game-tag">${g ? g.icon+' '+g.name : w.game}</div>
@@ -1040,10 +1037,10 @@ function addHighlight(data) {
   div.innerHTML = `
     <div class="hl-top">
       <div class="hl-agent">
-        <span style="font-size:16px">${ag.emoji}</span>
+        <img src="${ag.iconSrc}" style="width:16px;height:16px;border-radius:50%;object-fit:cover;background:white;"/>
         <span style="color:${ag.color}">${ag.name}</span>
       </div>
-      <span class="hl-time">just now</span>
+      <span class="hl-time">${nowUTC()}</span>
     </div>
     <div class="hl-desc">${reasoning || ''}</div>`;
 
@@ -1056,7 +1053,7 @@ function updateTicker() {
   const items = state.agents.map(a => {
     const np = a.balance - INIT_BALANCE;
     const cls = np > 0 ? 'tick-up' : np < 0 ? 'tick-dn' : 'tick-neutral';
-    return `<div class="tick-item"><span class="tick-neutral">${a.emoji} ${a.name}</span><span class="${cls}">${(np>=0?'+':'')+fmt(np)}</span></div>`;
+    return `<div class="tick-item"><span class="tick-neutral"><img src="${a.iconSrc}" style="width:12px;height:12px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;background:white;"/> ${a.name}</span><span class="${cls}">${(np>=0?'+':'')+fmt(np)}</span></div>`;
   }).join('');
   // Double for seamless loop
   document.getElementById('tickerInner').innerHTML = items + items;
