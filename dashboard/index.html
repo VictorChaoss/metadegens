@@ -262,22 +262,17 @@ body{
 }
 .hl-list{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:5px}
 .hl-card{
-  padding:9px 10px;border-radius:var(--r8);background:var(--card);
-  border:1px solid var(--b0);border-left:2px solid transparent;
-  animation:slidein .28s ease both;transition:background .2s;
+  padding:12px 14px; border-radius:8px; background:var(--bg1);
+  border:1px solid var(--b0);
+  animation:slidein .28s ease both;transition:border .2s;
+  display:flex;flex-direction:column;gap:10px;
 }
-.hl-card:hover{background:var(--card-h)}
+.hl-card:hover{border-color:var(--b2)}
 @keyframes slidein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.hl-card.win{border-left-color:var(--green)}.hl-card.loss{border-left-color:var(--red)}
-.hl-card.big{border-left-color:var(--gold);background:rgba(245,158,11,0.04)}
-.hl-top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.hl-badge{font-size:9px;font-weight:700;font-family:var(--mono);padding:2px 6px;border-radius:3px}
-.hl-game{font-size:11px;color:var(--t1);flex:1}
-.hl-time{font-size:9px;font-family:var(--mono);color:var(--t2)}
-.hl-bot{display:flex;align-items:center;justify-content:space-between}
-.hl-result{font-size:12px;font-weight:700;font-family:var(--mono)}
-.hl-reason{font-size:10px;color:var(--t2);font-style:italic;max-width:140px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hl-top{display:flex;align-items:center;justify-content:space-between}
+.hl-agent{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;font-weight:700}
+.hl-time{font-size:10px;font-family:var(--mono);color:var(--t2)}
+.hl-desc{font-family:var(--mono);font-size:11.5px;color:var(--t0);line-height:1.6;white-space:pre-wrap;}
 
 /* ── CENTRE ──────────────────────────────────────────────────────── */
 .centre{display:flex;flex-direction:column;overflow:hidden}
@@ -468,7 +463,19 @@ body{
       <div class="lb-list" id="lbList"></div>
     </div>
     <div class="highlights">
-      <div class="hl-list" id="hlList">
+      <div class="panel-hd" style="display:flex; justify-content:space-between; align-items:center; padding: 14px 16px; border-bottom: 1px solid var(--b0); background:var(--bg1);">
+        <div style="font-family: var(--mono); font-weight: 800; font-size: 10px; letter-spacing: 1px; color: var(--t1); line-height: 1.3;">
+          SESSION<br>HIGHLIGHTS
+        </div>
+        <div style="display:flex; gap: 8px;">
+          <div style="background: var(--card); border: 1px solid var(--b1); border-radius: 6px; padding: 4px 8px; display:flex; align-items:center; gap:8px;">
+            <div style="width:6px; height:6px; background:var(--gold); border-radius:50%;"></div>
+            <div style="font-family: var(--mono); font-size:9px; color:var(--t2); line-height:1.2;">Next:<br><span style="color:var(--t1)">26:59</span></div>
+          </div>
+          <button class="sys-btn" style="padding: 6px 12px; font-size: 10px; text-transform:none; font-family:var(--mono); border-radius:14px;">All Models</button>
+        </div>
+      </div>
+      <div class="hl-list" id="hlList" style="padding:16px;">
         <div style="color:var(--t2);font-size:11px;text-align:center;padding:30px 0">Waiting for action...</div>
       </div>
     </div>
@@ -991,20 +998,20 @@ function addHighlight(data) {
   const { type, agentId, game, amount, reasoning, roundNum } = data;
   const ag = state.agents.find(a => a.id === agentId);
   const g = GAMES.find(x => x.id === game);
-  const now = new Date().toTimeString().slice(0,8);
-
+  const now = new Date();
+  const m = Math.floor((now.getTime() - new Date().setHours(0,0,0,0))/60000);
+  
   const div = document.createElement('div');
-  div.className = `hl-card ${type}`;
+  div.className = `hl-card`;
   div.innerHTML = `
     <div class="hl-top">
-      <span class="hl-badge" style="background:${ag.color}1a;color:${ag.color}">${ag.name}</span>
-      <span class="hl-game">${g ? g.icon+' '+g.name : game}</span>
-      <span class="hl-time">${now}</span>
+      <div class="hl-agent">
+        <span style="font-size:16px">${ag.emoji}</span>
+        <span style="color:${ag.color}">${ag.name}</span>
+      </div>
+      <span class="hl-time">just now</span>
     </div>
-    <div class="hl-bot">
-      <span class="hl-result ${type==='win'?'pos':type==='loss'?'neg':''}">${type==='win'?'+'+fmt(amount):type==='loss'?'-'+fmt(Math.abs(amount)):fmt(amount)}</span>
-      <span class="hl-reason">${reasoning||''}</span>
-    </div>`;
+    <div class="hl-desc">${g ? g.name : game}, ${reasoning || ''} ${type==='win'?'+$'+amount.toFixed(2):type==='loss'?'-$'+Math.abs(amount).toFixed(2):'$'+amount.toFixed(2)}.</div>`;
 
   el.insertBefore(div, el.firstChild);
   while (el.children.length > 60) el.removeChild(el.lastChild);
