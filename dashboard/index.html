@@ -411,6 +411,23 @@ body{
 .toast.jackpot{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:var(--gold)}
 @keyframes toast-in{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 @keyframes toast-out{to{opacity:0;transform:translateX(20px)}}
+
+/* ── MOBILE RESPONSIVENESS ───────────────────────────────────────── */
+@media (max-width: 900px) {
+  body { overflow: auto; overflow-x: hidden; }
+  .header { height: auto; padding: 15px; flex-direction: column; gap: 15px; }
+  .header-mid { width: 100%; justify-content: space-between; gap: 5px; }
+  .header-right { width: 100%; justify-content: center; }
+  .status-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .app { position: static; display: flex; flex-direction: column; overflow: visible; padding-top: 0; }
+  .left-col, .right-col, .main-col { overflow: visible; border: none; border-bottom: 4px solid var(--bg0); }
+  .lb-list, .bw-list { max-height: 350px; overflow-y: auto; }
+  .agent-grid { grid-template-columns: 1fr; padding: 15px; gap: 15px; }
+  .hl-list { max-height: 500px; overflow-y: auto; }
+  .modal { width: 95vw; max-height: 90vh; }
+  .about-agents { grid-template-columns: 1fr 1fr; }
+  .about-ideas { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
