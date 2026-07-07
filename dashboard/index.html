@@ -638,9 +638,31 @@ const AGENTS = [
 ];
 
 const GAMES = [
-  { id:'blackjack', name:'Blackjack', icon:'🃏', winChance:.44, payMult:2 },
-  { id:'roulette',  name:'Roulette',  icon:'🎡', winChance:.486,payMult:2 },
-  { id:'slots',     name:'Slots',     icon:'🎰', winChance:.32, payMult:[2,3,5,10] },
+  { 
+    id:'sugar-rush', name:'Sugar Rush', icon:'🍬', winChance:.32, payMult:[2,3,5,10,35],
+    winReasonings: ['base RTP 97.1%, bonus 35x', 'cluster pay hit 20x', 'sweet drop multiplier 15x'],
+    lossReasonings: ['dead spins, RTP reversion', 'missed the scatter drop', 'low cluster payouts']
+  },
+  { 
+    id:'gates-olympus', name:'Gates of Olympus', icon:'⚡', winChance:.31, payMult:[2,3,5,12,20],
+    winReasonings: ['back-to-back 12x', 'Zeus dropped a 50x bomb', 'tumble win streak'],
+    lossReasonings: ['no multipliers on tumble', 'base game drain', 'missed free spins']
+  },
+  { 
+    id:'wanted-dead', name:'Wanted Dead or a Wild', icon:'🤠', winChance:.28, payMult:[2,5,10,20,50],
+    winReasonings: ['5 VS symbols total 50x', 'Train robbery bonus paid out', 'Duel at Dawn full screen'],
+    lossReasonings: ['dead spins in base game', 'VS symbols didn\'t connect', 'high variance drain']
+  },
+  { 
+    id:'dog-house', name:'Dog House Megaways', icon:'🐶', winChance:.34, payMult:[2,3,4,8],
+    winReasonings: ['sticky setup 3-3-4', 'raining wilds hit big', 'max megaways connection'],
+    lossReasonings: ['no wilds landed', 'minimum megaways layout', 'dead base game']
+  },
+  { 
+    id:'big-bass', name:'Big Bass Hold & Spinner', icon:'🎣', winChance:.33, payMult:[2,3,5,10],
+    winReasonings: ['triple collection', 'fisherman caught the 10x', 'hold & spinner bonus triggered'],
+    lossReasonings: ['fish got away', 'no fishermen landed', 'empty spins']
+  }
 ];
 
 // Chat messages are now defined inline with the simulation engine below
@@ -1011,7 +1033,7 @@ function addHighlight(data) {
       </div>
       <span class="hl-time">just now</span>
     </div>
-    <div class="hl-desc">${g ? g.name : game}, ${reasoning || ''} ${type==='win'?'+$'+amount.toFixed(2):type==='loss'?'-$'+Math.abs(amount).toFixed(2):'$'+amount.toFixed(2)}.</div>`;
+    <div class="hl-desc">${reasoning || ''}</div>`;
 
   el.insertBefore(div, el.firstChild);
   while (el.children.length > 60) el.removeChild(el.lastChild);
@@ -1097,8 +1119,20 @@ const POST_LOSS_MSGS = [
 ];
 
 function randThinkMsg()           { return THINK_MSGS[Math.floor(Math.random()*THINK_MSGS.length)](); }
-function randWinMsg(g, b, p)      { const f = POST_WIN_MSGS[Math.floor(Math.random()*POST_WIN_MSGS.length)]; return f(g,b,p); }
-function randLossMsg(g, b, bet)   { const f = POST_LOSS_MSGS[Math.floor(Math.random()*POST_LOSS_MSGS.length)]; return f(g,b,bet); }
+function randWinMsg(g, b, p) {
+  if (g.winReasonings) {
+    const r = g.winReasonings[Math.floor(Math.random()*g.winReasonings.length)];
+    return `${g.name}, ${r}, +$${p.toFixed(2)}.`;
+  }
+  const f = POST_WIN_MSGS[Math.floor(Math.random()*POST_WIN_MSGS.length)]; return f(g,b,p); 
+}
+function randLossMsg(g, b, bet) {
+  if (g.lossReasonings) {
+    const r = g.lossReasonings[Math.floor(Math.random()*g.lossReasonings.length)];
+    return `${g.name}, ${r}, -$${bet.toFixed(2)}.`;
+  }
+  const f = POST_LOSS_MSGS[Math.floor(Math.random()*POST_LOSS_MSGS.length)]; return f(g,b,bet); 
+}
 
 // ── Realistic Kelly-style bet sizing ─────────────────────────────
 function betSize(agent, game) {
@@ -1182,12 +1216,19 @@ async function agentPlay(agent) {
   let mult = 1;
 
   if (won) {
-    if (game.id === 'slots') {
+    if (Array.isArray(game.payMult)) {
       // Weighted slot multipliers — rare big hits
       const r = Math.random();
-      mult = r < 0.01 ? 10 : r < 0.06 ? 5 : r < 0.18 ? 3 : 2;
+      const opts = game.payMult;
+      if (opts.length === 5) {
+        mult = r < 0.01 ? opts[4] : r < 0.05 ? opts[3] : r < 0.15 ? opts[2] : r < 0.30 ? opts[1] : opts[0];
+      } else if (opts.length === 4) {
+        mult = r < 0.02 ? opts[3] : r < 0.10 ? opts[2] : r < 0.30 ? opts[1] : opts[0];
+      } else {
+        mult = opts[0];
+      }
     } else {
-      mult = 2; // BJ & roulette 1:1 net = 2x return
+      mult = game.payMult || 2;
     }
 
     const payout = bet * mult;
